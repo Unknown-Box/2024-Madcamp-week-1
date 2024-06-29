@@ -42,7 +42,8 @@ class _AppState extends State<App> {
     Cards(),
     Mypage(),
   ];
- 
+  bool extended = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,6 +64,49 @@ class _AppState extends State<App> {
           BottomNavigationBarItem(icon: const Icon(Icons.account_circle_rounded), label: 'MY'),
         ],
       ),
+      // floatingActionButton: _index == 0 ? FloatingActionButton(
+      //   onPressed: () {
+      //     setState(() {
+      //       extended = !extended;
+      //       debugPrint('$extended');
+      //     });
+      //   },
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ) : null,
+      floatingActionButton: _index == 1 ? extended ? Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        verticalDirection: VerticalDirection.up,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              setState(() {
+                extended = false;
+              });
+            },
+            child: Icon(Icons.close)
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton.extended(
+            onPressed: () {},
+            icon: Icon(Icons.image),
+            label: Text('Image'),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton.extended(
+            onPressed: () {},
+            icon: Icon(Icons.camera_alt),
+            label: Text('Camera'),
+          ),
+        ],
+      ) : FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            extended = true;
+          });
+        },
+        child: Icon(Icons.add)
+      ) : null,
     );
   }
 }
