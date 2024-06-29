@@ -57,6 +57,14 @@ class _CardsState extends State<Cards> {
                 image: AssetImage(imagesList[index]),
                 fit: BoxFit.cover,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color.fromARGB(72, 98, 94, 94),
+                  offset: Offset(0, 5.0),
+                  blurRadius: 3.0,
+                  spreadRadius: 1.0,
+                ),
+              ],
             ),
           );
         },
