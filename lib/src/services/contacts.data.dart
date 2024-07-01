@@ -90,7 +90,7 @@ const data = [
   {
     "id": "61f8ec4b-6ac5-4819-bc9e-6b3759c57bf2",
     "fn": "Abel Maclead",
-    "org": "Rangoni Of Florence",
+    // "org": "Rangoni Of Florence",
     "tel": "631-677-3675",
     "email": "amaclead@gmail.com",
     "position": null

@@ -1,10 +1,13 @@
-import './contacts.data.dart';
+import 'package:uuid/uuid.dart';
+import 'package:cardrepo/src/repository/index.dart';
+import 'package:uuid/v4.dart';
 
 class ContactModel {
   final String id;
   final String fullName;
   final String tel;
   final String email;
+  final String cardUrl;
   final String? org;
   final String? position;
   final String? extLink;
@@ -14,6 +17,7 @@ class ContactModel {
     required this.fullName,
     required this.tel,
     required this.email,
+    required this.cardUrl,
     this.org,
     this.position,
     this.extLink
@@ -25,6 +29,7 @@ class ContactModel {
       fullName: dict['fn']!,
       tel: dict['tel']!,
       email: dict['email']!,
+      cardUrl: dict['card_url'],
       org: dict['org'],
       position: dict['position'],
       extLink: dict['ext_link']
@@ -33,7 +38,7 @@ class ContactModel {
 }
 
 enum ContactOrderBy {
-  name,
+  fn,
   org,
 }
 
@@ -43,32 +48,35 @@ enum ContactOrderDirection {
 }
 
 class ContactService {
+  final repo = Repository();
+
   Future<List<ContactModel>> listContacts({
-    ContactOrderBy orderBy = ContactOrderBy.name,
+    ContactOrderBy orderBy = ContactOrderBy.fn,
     ContactOrderDirection orderDir = ContactOrderDirection.asc
   }) async {
-    final contacts = data.map((entry) => ContactModel.fromDict(entry))
+    late final String orderByStatement;
+    switch(orderBy) {
+      case ContactOrderBy.fn:
+        if (orderDir == ContactOrderDirection.asc) {
+          orderByStatement = 'fn ASC';
+        } else {
+          orderByStatement = 'fn DESC';
+        }
+      case ContactOrderBy.org:
+        if (orderDir == ContactOrderDirection.asc) {
+          orderByStatement = 'org ASC';
+        } else {
+          orderByStatement = 'org DESC';
+        }
+    }
+
+    final db = await repo.db;
+    final data = await db.query(
+      'CONTACTS',
+      orderBy: orderByStatement
+    );
+    final contacts = data.map(ContactModel.fromDict)
                          .toList();
-    contacts.sort((a, b) {
-      if (orderDir == ContactOrderDirection.desc) {
-        final tmp = a;
-        a = b;
-        b = tmp;
-      }
-
-      switch(orderBy) {
-        case ContactOrderBy.name:
-          final fnA = a.fullName;
-          final fnB = b.fullName;
-
-          return fnA.compareTo(fnB);
-        case ContactOrderBy.org:
-          final orgA = a.org ?? '';
-          final orgB = b.org ?? '';
-
-          return orgA.compareTo(orgB);
-      }
-    });
 
     return contacts;
   }

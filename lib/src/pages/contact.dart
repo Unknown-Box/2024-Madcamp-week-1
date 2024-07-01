@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cardrepo/src/services/contacts.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -46,6 +48,7 @@ class _ContactState extends State<Contact> {
               hintText: 'Search Contacts',
               onChanged: (value) async {
                 final contacts = await contactService.listContacts();
+
                 setState(() {
                   _contacts = contacts.where((contact) {
                     final terms = value.split(' ')
@@ -79,15 +82,17 @@ class _ContactState extends State<Contact> {
             shrinkWrap: true,
             itemCount: _contacts.length,
             itemBuilder: (BuildContext context, int idx) {
+              final contact = _contacts[idx];
+
               return Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
                 child: ContactCard(
-                  fullName: _contacts[idx].fullName,
-                  tel: _contacts[idx].tel,
-                  email: _contacts[idx].email,
-                  org: _contacts[idx].org,
-                  position: _contacts[idx].position,
-                  extLink: _contacts[idx].extLink,
+                  fullName: contact.fullName,
+                  tel: contact.tel,
+                  email: contact.email,
+                  org: contact.org,
+                  position: contact.position,
+                  extLink: contact.extLink,
                 ),
               );
             },
@@ -100,9 +105,9 @@ class _ContactState extends State<Contact> {
 }
 
 class ContactCard extends StatefulWidget {
-  final String? fullName;
-  final String? tel;
-  final String? email;
+  final String fullName;
+  final String tel;
+  final String email;
   final String? org;
   final String? position;
   final String? extLink;
@@ -110,9 +115,9 @@ class ContactCard extends StatefulWidget {
 
   const ContactCard({
     super.key,
-    this.fullName,
-    this.tel,
-    this.email,
+    required this.fullName,
+    required this.tel,
+    required this.email,
     this.org,
     this.position,
     this.extLink,
@@ -171,15 +176,14 @@ class _ContactCardState extends State<ContactCard> {
 }
 
 class ContactCardSummary extends StatelessWidget {
-  final String? fullName;
-  final String? tel;
+  final String fullName;
+  final String tel;
   // final Function handler;
 
   const ContactCardSummary({
     super.key,
-    this.fullName,
-    this.tel,
-    // required this.handler,
+    required this.fullName,
+    required this.tel,
   });
 
   @override
@@ -188,11 +192,11 @@ class ContactCardSummary extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            fullName!,
+            fullName,
             style: Theme.of(context).textTheme.titleMedium
           ),
           const Spacer(),
-          Text(tel ?? ''),
+          Text(tel),
         ]
       ),
     );
@@ -200,18 +204,18 @@ class ContactCardSummary extends StatelessWidget {
 }
 
 class ContactCardDetail extends StatelessWidget {
-  final String? fullName;
-  final String? tel;
-  final String? email;
+  final String fullName;
+  final String tel;
+  final String email;
   final String? org;
   final String? position;
   final String? extLink;
 
   const ContactCardDetail({
     super.key,
-    this.fullName,
-    this.tel,
-    this.email,
+    required this.fullName,
+    required this.tel,
+    required this.email,
     this.org,
     this.position,
     this.extLink,
@@ -226,68 +230,76 @@ class ContactCardDetail extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                fullName!,
+                fullName,
                 style: Theme.of(context).textTheme.titleMedium
               ),
-              Row(
-                children: [
-                  Text(
-                    org ?? '',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  if (position != null)
-                    Row(
+              if (org != null)
+                Row(
+                  children: [
+                    Text(
+                      org!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (position != null)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            child: Center(
+                              child: Text(
+                                '|',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              )
+                            ),
+                          ),
+                          Text(
+                            position!,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          )
+                        ]
+                      )
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TEL',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),Text(
+                            'EMAIL',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: 16,
-                          child: Center(
-                            child: Text(
-                              '|',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            )
+                        Text(
+                          tel,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold
                           ),
                         ),
                         Text(
-                          position!,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        )
-                      ]
-                    )
-                ],
+                          email,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              if (tel != null)
-                Row(
-                  children: [
-                    Text(
-                      'TEL',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      tel!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ],
-                ),
-              if (email != null)
-                Row(
-                  children: [
-                    Text(
-                      'EMAIL',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      email!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ],
-                ),
             ],
           ),
         ],
