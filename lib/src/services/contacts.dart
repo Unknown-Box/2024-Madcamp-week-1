@@ -1,6 +1,5 @@
-import 'package:uuid/uuid.dart';
-import 'package:cardrepo/src/repository/index.dart';
 import 'package:uuid/v4.dart';
+import 'package:cardrepo/src/repository/index.dart';
 
 class ContactModel {
   final String id;
@@ -37,43 +36,26 @@ class ContactModel {
   }
 }
 
-enum ContactOrderBy {
-  fn,
-  org,
-}
-
-enum ContactOrderDirection {
-  asc,
-  desc,
-}
-
 class ContactService {
   final repo = Repository();
+  final uuid4Generator = const UuidV4();
 
-  Future<List<ContactModel>> listContacts({
-    ContactOrderBy orderBy = ContactOrderBy.fn,
-    ContactOrderDirection orderDir = ContactOrderDirection.asc
+  Future<void> insertContact({
+    required String fullName,
+    required String tel,
+    required String email,
+    String? org,
+    String? position,
+    String? extLink
   }) async {
-    late final String orderByStatement;
-    switch(orderBy) {
-      case ContactOrderBy.fn:
-        if (orderDir == ContactOrderDirection.asc) {
-          orderByStatement = 'fn ASC';
-        } else {
-          orderByStatement = 'fn DESC';
-        }
-      case ContactOrderBy.org:
-        if (orderDir == ContactOrderDirection.asc) {
-          orderByStatement = 'org ASC';
-        } else {
-          orderByStatement = 'org DESC';
-        }
-    }
+    final uuid4 = uuid4Generator.generate();
+  }
 
+  Future<List<ContactModel>> listContacts() async {
     final db = await repo.db;
     final data = await db.query(
       'CONTACTS',
-      orderBy: orderByStatement
+      orderBy: "fn ASC"
     );
     final contacts = data.map(ContactModel.fromDict)
                          .toList();

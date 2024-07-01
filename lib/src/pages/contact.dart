@@ -77,6 +77,31 @@ class _ContactState extends State<Contact> {
           ),
         ),
         const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  final dbDir = getDatabasesPath();
+                  const dbName = "cardrepo.db";
+                  final dbPath = '$dbDir/$dbName';
+                  print("Reset");
+
+                  deleteDatabase(dbPath);
+                });
+              },
+              child: const Text('Reset')
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                print(await getApplicationDocumentsDirectory());
+                // await contactService.insertContact();
+              },
+              child: const Text('Click'),
+            )
+          ],
+        ),
         Expanded(
           child: ListView.separated(
             shrinkWrap: true,
