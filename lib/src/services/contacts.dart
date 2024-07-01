@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:uuid/v4.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -94,13 +95,57 @@ class ContactService {
 
   Future<List<ContactModel>> listContacts() async {
     final db = await repo.db;
-    final data = await db.query(
+    final results = await db.query(
       'CONTACTS',
       orderBy: "fn ASC"
     );
-    final contacts = data.map(ContactModel.fromDict)
-                         .toList();
+    final contacts = results.map(ContactModel.fromDict)
+                            .toList();
 
     return contacts;
+  }
+
+  Future<ContactModel?> getMyContact() async {
+    final db = await repo.db;
+    final results = await db.query(
+      'CONTACTS',
+      where: 'id = ?',
+      whereArgs: ['SELF']
+    );
+
+    return results.isEmpty ? null : ContactModel.fromDict(results[0]);
+  }
+
+  Future<bool> udpateMyContact({
+    String? fullName,
+    String? tel,
+    String? email,
+    String? org,
+    String? position,
+    String? extLink
+  }) async {
+    final db = await repo.db;
+    final record = {
+      'id': 'SELF',
+      'fn': fullName,
+      'tel': tel,
+      'email': email,
+      'card_url': '',
+      'org': org,
+      'position': position,
+      'extLink': extLink
+    };
+    record.removeWhere((_, value) => value == null);
+
+    try {
+      await db.insert(
+        'CONTACTS',
+        record,
+        conflictAlgorithm: ConflictAlgorithm.replace
+      );
+      return true;
+    } catch(_) {
+      return false;
+    }
   }
 }
