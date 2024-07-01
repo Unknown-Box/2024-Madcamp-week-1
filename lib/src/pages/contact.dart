@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cardrepo/src/services/contacts.data.dart';
+import 'package:cardrepo/src/services/contacts.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -9,8 +9,20 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactState extends State<Contact> {
-  List<Map<String, String?>> contacts = data;
-  List<Map<String, String?>> exposedContacts = data;
+  List<ContactModel> _contacts = [];
+  final contactService = ContactService();
+
+  @override
+  void initState() {
+    super.initState();
+    contactService
+      .listContacts()
+      .then((contactlist) {
+        setState(() {
+          _contacts = [...contactlist];
+        });
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,33 +36,34 @@ class _ContactState extends State<Contact> {
               trailing: const [
                 Icon(Icons.search)
               ],
-              constraints: BoxConstraints(),
+              constraints: const BoxConstraints(),
               padding: WidgetStateProperty.all(
-                EdgeInsets.symmetric(horizontal: 16, vertical: 4)
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4)
               ),
               textStyle: WidgetStateProperty.all(
                 Theme.of(context).textTheme.bodyLarge
               ),
-              hintText: "Search Contacts",
-              onChanged: (value) {
+              hintText: 'Search Contacts',
+              onChanged: (value) async {
+                final contacts = await contactService.listContacts();
                 setState(() {
-                  exposedContacts = contacts.where((contact) {
+                  _contacts = contacts.where((contact) {
                     final terms = value.split(' ')
                                        .map((term) => term.toLowerCase());
                     final inName = terms.every((term) {
-                      final fn = contact["fn"]!;
+                      final fn = contact.fullName;
 
                       return fn.toLowerCase().contains(term);
                     });
                     final inTel = terms.every((term) {
-                      final tel = contact["tel"]!.replaceAll('-', '');
+                      final tel = contact.tel.replaceAll('-', '');
 
                       return tel.contains(term);
                     });
                     final inOrg = terms.every((term) {
-                      final org = contact["org"]!.toLowerCase();
+                      final org = contact.org?.toLowerCase();
 
-                      return org.toLowerCase().contains(term);
+                      return org?.contains(term) ?? false;
                     });
 
                     return inName || inTel || inOrg;
@@ -64,17 +77,17 @@ class _ContactState extends State<Contact> {
         Expanded(
           child: ListView.separated(
             shrinkWrap: true,
-            itemCount: exposedContacts.length,
+            itemCount: _contacts.length,
             itemBuilder: (BuildContext context, int idx) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
                 child: ContactCard(
-                  fullName: exposedContacts[idx]["fn"],
-                  tel: exposedContacts[idx]["tel"],
-                  email: exposedContacts[idx]["email"],
-                  org: exposedContacts[idx]["org"],
-                  position: exposedContacts[idx]["position"],
-                  extLink: exposedContacts[idx]["ext_link"],
+                  fullName: _contacts[idx].fullName,
+                  tel: _contacts[idx].tel,
+                  email: _contacts[idx].email,
+                  org: _contacts[idx].org,
+                  position: _contacts[idx].position,
+                  extLink: _contacts[idx].extLink,
                 ),
               );
             },
@@ -179,7 +192,7 @@ class ContactCardSummary extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium
           ),
           const Spacer(),
-          Text(tel ?? ""),
+          Text(tel ?? ''),
         ]
       ),
     );
