@@ -58,6 +58,18 @@ class ContactService {
   final repo = Repository();
   final uuid4Generator = const UuidV4();
 
+  Future<ContactModel?> getContactById(String id) async {
+    final db = await repo.db;
+    final results = await db.query(
+      'CONTACTS',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    return results.isEmpty ? null : ContactModel.fromDict(results[0]);
+  }
+
   Future<void> insertContact({
     required String fullName,
     required String tel,
@@ -93,11 +105,54 @@ class ContactService {
     }
   }
 
+  Future<bool> updateContactById(
+    String id,
+    {
+      String? fullName,
+      String? tel,
+      String? email,
+      String? org,
+      String? position,
+      String? extLink
+    }
+  ) async {
+    final db = await repo.db;
+    final record = {
+      'fn': fullName,
+      'tel': tel,
+      'email': email,
+      'org': org,
+      'position': position,
+      'extLink': extLink
+    };
+    record.removeWhere((_, value) => value == null);
+    final modifiedCnt = await db.update(
+      'CONTACTS',
+      record,
+      where: 'id = ?',
+      whereArgs: [id],
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+
+    return modifiedCnt == 1;
+  }
+
+  Future<bool> removeContactById(String id) async {
+    final db = await repo.db;
+    final removedCnt = await db.delete(
+      'CONTACTS',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    return removedCnt == 1;
+  }
+
   Future<List<ContactModel>> listContacts() async {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      orderBy: "fn ASC"
+      orderBy: "fn ASC",
     );
     final contacts = results.map(ContactModel.fromDict)
                             .toList();
@@ -110,7 +165,8 @@ class ContactService {
     final results = await db.query(
       'CONTACTS',
       where: 'id = ?',
-      whereArgs: ['SELF']
+      whereArgs: ['SELF'],
+      limit: 1,
     );
 
     return results.isEmpty ? null : ContactModel.fromDict(results[0]);
@@ -141,7 +197,7 @@ class ContactService {
       await db.insert(
         'CONTACTS',
         record,
-        conflictAlgorithm: ConflictAlgorithm.replace
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
       return true;
     } catch(_) {
