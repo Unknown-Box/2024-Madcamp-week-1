@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:cardrepo/src/services/contacts.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -10,139 +11,110 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactState extends State<Contact> {
-  List<ContactModel> _contacts = [];
-  final contactService = ContactService();
+  List<ContactModel> contacts = [];
+  final ContactService contactService = ContactService();
 
   @override
   void initState() {
     super.initState();
+
     contactService
       .listContacts()
-      .then((contactlist) {
+      .then((initialContacts) async {
         setState(() {
-          _contacts = [...contactlist];
+          contacts = initialContacts;
         });
       });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Center(
-          child: FractionallySizedBox(
-            widthFactor: 0.95,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8
+      ),
+      child: Column(
+        children: [
+          Center(
             child: SearchBar(
-              elevation: WidgetStateProperty.all(0),
-              trailing: const [
-                Icon(Icons.search)
-              ],
-              constraints: const BoxConstraints(),
-              padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4)
-              ),
-              textStyle: WidgetStateProperty.all(
-                Theme.of(context).textTheme.bodyLarge
-              ),
-              hintText: 'Search Contacts',
-              onChanged: (value) async {
-                final contacts = await contactService.listContacts();
-
-                setState(() {
-                  _contacts = contacts.where((contact) {
-                    final terms = value.split(' ')
-                                       .map((term) => term.toLowerCase());
-                    final inName = terms.every((term) {
-                      final fn = contact.fullName;
-
-                      return fn.toLowerCase().contains(term);
-                    });
-                    final inTel = terms.every((term) {
-                      final tel = contact.tel.replaceAll('-', '');
-
-                      return tel.contains(term);
-                    });
-                    final inOrg = terms.every((term) {
-                      final org = contact.org?.toLowerCase();
-
-                      return org?.contains(term) ?? false;
-                    });
-
-                    return inName || inTel || inOrg;
-                  }).toList();
-                });
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  final dbDir = getDatabasesPath();
-                  const dbName = "cardrepo.db";
-                  final dbPath = '$dbDir/$dbName';
-                  print("Reset");
-
-                  deleteDatabase(dbPath);
-                });
-              },
-              child: const Text('Reset')
-            ),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Click'),
-            )
-          ],
-        ),
-        Expanded(
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: _contacts.length,
-            itemBuilder: (BuildContext context, int idx) {
-              final contact = _contacts[idx];
-
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
-                child: ContactCard(
-                  fullName: contact.fullName,
-                  tel: contact.tel,
-                  email: contact.email,
-                  org: contact.org,
-                  position: contact.position,
-                  extLink: contact.extLink,
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4
                 ),
-              );
-            },
-            separatorBuilder: (BuildContext context, int idx) => const Divider(),
+              ),
+              constraints: const BoxConstraints(),
+              leading: const Icon(Icons.search),
+              hintText: 'Search by name or company',
+              elevation: const WidgetStatePropertyAll(4),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                )
+              ),
+              textStyle: WidgetStatePropertyAll(
+                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.black54,
+                )
+              ),
+            ),
           ),
-        )
-      ],
+
+          const SizedBox(height: 16),
+
+          Expanded(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemBuilder: (ctx, idx) {
+                final contact = contacts[idx];
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 8
+                  ),
+                  child: ContactCard(
+                    id: contact.id,
+                    fullName: contact.fullName,
+                    tel: contact.tel,
+                    email: contact.email,
+                    org: contact.org,
+                    position: contact.position,
+                    extLink: contact.extLink,
+                  ),
+                );
+              },
+              separatorBuilder: (ctx, idx) => const Divider(
+                height: 4,
+              ),
+              itemCount: contacts.length,
+            ),
+          )
+        ],
+      ),
     );
   }
 }
 
 class ContactCard extends StatefulWidget {
+  final String id;
   final String fullName;
   final String tel;
   final String email;
   final String? org;
   final String? position;
   final String? extLink;
-  final bool initialExtended;
 
   const ContactCard({
     super.key,
+    required this.id,
     required this.fullName,
     required this.tel,
     required this.email,
     this.org,
     this.position,
     this.extLink,
-    this.initialExtended = false,
   });
 
   @override
@@ -150,81 +122,117 @@ class ContactCard extends StatefulWidget {
 }
 
 class _ContactCardState extends State<ContactCard> {
-  bool extended = false;
-
-  toggle() {
-    setState(() {
-      extended = !extended;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    extended = widget.initialExtended;
-  }
+  bool expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () {
-            toggle();
-          },
-          icon: Icon(
-            extended ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down
-          ),
-        ),
-        if (extended)
-          ContactCardDetail(
-            fullName: widget.fullName,
-            tel: widget.tel,
-            org: widget.org,
-            position: widget.position,
-            email: widget.email,
-            extLink: widget.extLink,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ContactDetails(
+              id: widget.id,
+              fullName: widget.fullName,
+              tel: widget.tel,
+              email: widget.email,
+              org: widget.org,
+              position: widget.position,
+              extLink: widget.extLink,
+            ),
           )
-        else
-          ContactCardSummary(
-            fullName: widget.fullName,
-            tel: widget.tel,
-          )
-      ],
-    );
-
-  }
-}
-
-class ContactCardSummary extends StatelessWidget {
-  final String fullName;
-  final String tel;
-  // final Function handler;
-
-  const ContactCardSummary({
-    super.key,
-    required this.fullName,
-    required this.tel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Row(
+        );
+      },
+      child: Column(
         children: [
-          Text(
-            fullName,
-            style: Theme.of(context).textTheme.titleMedium
+          Row(
+            children: [
+              Expanded(
+                child: Text(widget.fullName)
+              ),
+
+              Expanded(
+                child: Text(
+                  widget.tel,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.black45,
+                  )
+                )
+              ),
+
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      expanded = !expanded;
+                    });
+                  },
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  padding: const EdgeInsets.all(0),
+                ),
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(tel),
-        ]
+
+          if (expanded)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Company',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFF7D7D7D),
+                            fontWeight: FontWeight.w400
+                          ),
+                        ),
+                        Text(
+                          'Email',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFF7D7D7D),
+                            fontWeight: FontWeight.w400
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.org ?? '',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFF7F7F7F),
+                          fontWeight: FontWeight.w800
+                        ),
+                      ),
+                      Text(
+                        widget.email,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xFF7F7F7F),
+                          fontWeight: FontWeight.w800
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-class ContactCardDetail extends StatelessWidget {
+class ContactDetails extends StatelessWidget {
+  final String id;
   final String fullName;
   final String tel;
   final String email;
@@ -232,8 +240,9 @@ class ContactCardDetail extends StatelessWidget {
   final String? position;
   final String? extLink;
 
-  const ContactCardDetail({
+  const ContactDetails({
     super.key,
+    required this.id,
     required this.fullName,
     required this.tel,
     required this.email,
@@ -244,86 +253,216 @@ class ContactCardDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                fullName,
-                style: Theme.of(context).textTheme.titleMedium
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 0,
+                vertical: 16,
               ),
-              if (org != null)
-                Row(
-                  children: [
-                    Text(
-                      org!,
-                      style: Theme.of(context).textTheme.bodySmall,
+              child: AspectRatio(
+                aspectRatio: 1.6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5.0),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/1.png'),
+                      fit: BoxFit.cover,
                     ),
-                    if (position != null)
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            child: Center(
-                              child: Text(
-                                '|',
-                                style: Theme.of(context).textTheme.labelSmall,
-                              )
-                            ),
-                          ),
-                          Text(
-                            position!,
-                            style: Theme.of(context).textTheme.labelSmall,
-                          )
-                        ]
-                      )
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(72, 98, 94, 94),
+                        offset: Offset(0, 5.0),
+                        blurRadius: 3.0,
+                        spreadRadius: 1.0,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 0,
+                vertical: 16,
+              ),
+              child: Text(
+                fullName,
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  height: 1.20,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w600,
+                  shadows: const <Shadow>[
+                    Shadow(
+                      color: Color(0x40000000),
+                      offset: Offset(0, 3),
+                      blurRadius: 3,
+                    )
                   ],
                 ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
+              ),
+            ),
 
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'TEL',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),Text(
-                            'EMAIL',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 0,
+                vertical: 16,
+              ),
+              child: AspectRatio(
+                aspectRatio: 2,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.black,
+                      width: 1,
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          tel,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Mobile',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xFF888888),
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                tel,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w800
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          ],
                         ),
-                        Text(
-                          email,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Email',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xFF888888),
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                email,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w800
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Company',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xFF888888),
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                org ?? '',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w800
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Position',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xFF888888),
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                position ?? '',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w800
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Additional Link',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xFF888888),
+                                  fontWeight: FontWeight.w500
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                extLink ?? 'https://www.instagram.com/in.cs.tagram/',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w800
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
