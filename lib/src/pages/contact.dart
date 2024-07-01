@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './contacts.data.dart';
+import 'package:cardrepo/src/services/contacts.data.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -38,10 +38,9 @@ class _ContactState extends State<Contact> {
                     final terms = value.split(' ')
                                        .map((term) => term.toLowerCase());
                     final inName = terms.every((term) {
-                      final fn = contact["first_name"];
-                      final ln = contact["last_name"];
+                      final fn = contact["fn"]!;
 
-                      return '$fn $ln'.toLowerCase().contains(term);
+                      return fn.toLowerCase().contains(term);
                     });
                     final inTel = terms.every((term) {
                       final tel = contact["tel"]!.replaceAll('-', '');
@@ -70,8 +69,7 @@ class _ContactState extends State<Contact> {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
                 child: ContactCard(
-                  firstName: exposedContacts[idx]["first_name"],
-                  lastName: exposedContacts[idx]["last_name"],
+                  fullName: exposedContacts[idx]["fn"],
                   tel: exposedContacts[idx]["tel"],
                   email: exposedContacts[idx]["email"],
                   org: exposedContacts[idx]["org"],
@@ -89,8 +87,7 @@ class _ContactState extends State<Contact> {
 }
 
 class ContactCard extends StatefulWidget {
-  final String? firstName;
-  final String? lastName;
+  final String? fullName;
   final String? tel;
   final String? email;
   final String? org;
@@ -100,8 +97,7 @@ class ContactCard extends StatefulWidget {
 
   const ContactCard({
     super.key,
-    this.firstName,
-    this.lastName,
+    this.fullName,
     this.tel,
     this.email,
     this.org,
@@ -143,8 +139,7 @@ class _ContactCardState extends State<ContactCard> {
         ),
         if (extended)
           ContactCardDetail(
-            firstName: widget.firstName,
-            lastName: widget.lastName,
+            fullName: widget.fullName,
             tel: widget.tel,
             org: widget.org,
             position: widget.position,
@@ -153,8 +148,7 @@ class _ContactCardState extends State<ContactCard> {
           )
         else
           ContactCardSummary(
-            firstName: widget.firstName,
-            lastName: widget.lastName,
+            fullName: widget.fullName,
             tel: widget.tel,
           )
       ],
@@ -164,15 +158,13 @@ class _ContactCardState extends State<ContactCard> {
 }
 
 class ContactCardSummary extends StatelessWidget {
-  final String? firstName;
-  final String? lastName;
+  final String? fullName;
   final String? tel;
   // final Function handler;
 
   const ContactCardSummary({
     super.key,
-    this.firstName,
-    this.lastName,
+    this.fullName,
     this.tel,
     // required this.handler,
   });
@@ -183,7 +175,7 @@ class ContactCardSummary extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '$firstName $lastName',
+            fullName!,
             style: Theme.of(context).textTheme.titleMedium
           ),
           const Spacer(),
@@ -195,8 +187,7 @@ class ContactCardSummary extends StatelessWidget {
 }
 
 class ContactCardDetail extends StatelessWidget {
-  final String? firstName;
-  final String? lastName;
+  final String? fullName;
   final String? tel;
   final String? email;
   final String? org;
@@ -205,8 +196,7 @@ class ContactCardDetail extends StatelessWidget {
 
   const ContactCardDetail({
     super.key,
-    this.firstName,
-    this.lastName,
+    this.fullName,
     this.tel,
     this.email,
     this.org,
@@ -223,7 +213,7 @@ class ContactCardDetail extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$firstName $lastName',
+                fullName!,
                 style: Theme.of(context).textTheme.titleMedium
               ),
               Row(
