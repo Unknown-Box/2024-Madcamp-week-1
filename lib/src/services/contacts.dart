@@ -1,4 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:uuid/v4.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:cardrepo/src/repository/index.dart';
 
 class ContactModel {
@@ -34,6 +38,19 @@ class ContactModel {
       extLink: dict['ext_link']
     );
   }
+
+  Map<String, dynamic> toDict() {
+    return {
+      "id": id,
+      "fn": fullName,
+      "tel": tel,
+      "email": email,
+      "card_url": cardUrl,
+      "org": org,
+      "position": position,
+      "ext_link": extLink
+    };
+  }
 }
 
 class ContactService {
@@ -44,11 +61,35 @@ class ContactService {
     required String fullName,
     required String tel,
     required String email,
+    required XFile cardImg,
     String? org,
     String? position,
     String? extLink
   }) async {
+    final db = await repo.db;
     final uuid4 = uuid4Generator.generate();
+    final cardImgDir = await getApplicationDocumentsDirectory();
+    final cardImgPath = join(cardImgDir.path, 'card_imgs', uuid4);
+
+    try {
+      final contact = ContactModel(
+        id: uuid4,
+        fullName: fullName,
+        tel: tel,
+        email: email,
+        cardUrl: cardImgPath,
+        org: org,
+        position: position,
+        extLink: extLink
+      );
+
+      await db.insert(
+        'CONTACTS',
+        contact.toDict()
+      );
+    } catch(e) {
+      debugPrint(e.toString());
+    }
   }
 
   Future<List<ContactModel>> listContacts() async {

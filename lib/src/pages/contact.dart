@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cardrepo/src/services/contacts.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:cardrepo/src/services/contacts.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -94,10 +93,7 @@ class _ContactState extends State<Contact> {
               child: const Text('Reset')
             ),
             ElevatedButton(
-              onPressed: () async {
-                print(await getApplicationDocumentsDirectory());
-                // await contactService.insertContact();
-              },
+              onPressed: () {},
               child: const Text('Click'),
             )
           ],
