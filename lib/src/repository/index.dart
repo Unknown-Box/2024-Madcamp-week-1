@@ -18,11 +18,13 @@ class Repository {
 
       _db = await openDatabase(
         dbPath,
-        version: 1,
-        onCreate: _onCreate
+        version: 3,
+        onCreate: _onCreate,
       );
+      // deleteDatabase(dbPath);
       _isDbBound = true;
     }
+
 
     return _db;
   }
@@ -35,6 +37,7 @@ class Repository {
         tel TEXT NOT NULL,
         email TEXT NOT NULL,
         card_url TEXT NOT NULL,
+        favorite INTEGER NOT NULL,
         org TEXT,
         position TEXT,
         ext_link TEXT
@@ -46,6 +49,7 @@ class Repository {
           tel,
           email,
           card_url,
+          favorite,
           org,
           position
         ) VALUES (
@@ -54,6 +58,7 @@ class Repository {
           '${e["tel"]}',
           '${e["email"]}',
           '',
+          0,
           ${e["org"] == null ? 'NULL' : "'${e["org"]}'"},
           ${e["position"] == null ? 'NULL' : "'${e["position"]}'"}
         );""",
