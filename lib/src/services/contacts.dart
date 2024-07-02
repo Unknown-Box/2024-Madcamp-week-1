@@ -237,7 +237,7 @@ class ContactService {
       'card_url': '',
       'org': org,
       'position': position,
-      'extLink': extLink
+      'ext_link': extLink
     };
     record.removeWhere((_, value) => value == null);
 
