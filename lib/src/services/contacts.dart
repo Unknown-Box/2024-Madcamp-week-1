@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -5,6 +6,7 @@ import 'package:uuid/v4.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cardrepo/src/repository/index.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class ContactModel {
   final String id;
@@ -250,6 +252,49 @@ class ContactService {
       return true;
     } catch(_) {
       return false;
+    }
+  }
+
+  Future<ContactModel?> fromCardImage(XFile img) async {
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: 'AIzaSyDKBTHMsMURCRTrTP11DyuADrBgQkpz1bI'
+      );
+      final prompt = TextPart(
+        'parse the business card and return single line json file given as follows: {"full_name": "Micheal Wade", "tel": "123-4567-6789", "email": "example@mail.com", "company": "Apple", "position": "marketer", "ext_link": null}. you have to get full name, telephone number, email address of the card\'s owner, also company name and position may be required. if there is any external link, returns it, too. '
+      );
+      final imgPrompt = DataPart('image/jpeg', await img.readAsBytes());
+      final resp = await model.generateContent(
+        [Content.multi([prompt, imgPrompt])]
+      );
+      final result = resp.text!;
+      final linesCnt = '\n'.allMatches(result).length;
+      late Map<String, String> data;
+
+      switch (linesCnt) {
+        case 1:
+          data = jsonDecode(result);
+          break;
+        case 3:
+          data = jsonDecode(result.substring(8, result.length - 3));
+          break;
+        default:
+          throw UnimplementedError('unexpected input');
+      }
+
+      return ContactModel(
+        id: uuid4Generator.generate(),
+        fullName: data['full_name'] ?? '',
+        tel: data['tel'] ?? '',
+        email: data['email'] ?? '',
+        cardUrl: '',
+        org: data['org'],
+        position: data['position'],
+        extLink: data['ext_link'],
+      );
+    } catch(e) {
+      return null;
     }
   }
 }
