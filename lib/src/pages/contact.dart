@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import './contacts.data.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:cardrepo/src/services/contacts.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -9,8 +10,20 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactState extends State<Contact> {
-  List<Map<String, String?>> contacts = data;
-  List<Map<String, String?>> exposedContacts = data;
+  List<ContactModel> _contacts = [];
+  final contactService = ContactService();
+
+  @override
+  void initState() {
+    super.initState();
+    contactService
+      .listContacts()
+      .then((contactlist) {
+        setState(() {
+          _contacts = [...contactlist];
+        });
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,34 +37,35 @@ class _ContactState extends State<Contact> {
               trailing: const [
                 Icon(Icons.search)
               ],
-              constraints: BoxConstraints(),
+              constraints: const BoxConstraints(),
               padding: WidgetStateProperty.all(
-                EdgeInsets.symmetric(horizontal: 16, vertical: 4)
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4)
               ),
               textStyle: WidgetStateProperty.all(
                 Theme.of(context).textTheme.bodyLarge
               ),
-              hintText: "Search Contacts",
-              onChanged: (value) {
+              hintText: 'Search Contacts',
+              onChanged: (value) async {
+                final contacts = await contactService.listContacts();
+
                 setState(() {
-                  exposedContacts = contacts.where((contact) {
+                  _contacts = contacts.where((contact) {
                     final terms = value.split(' ')
                                        .map((term) => term.toLowerCase());
                     final inName = terms.every((term) {
-                      final fn = contact["first_name"];
-                      final ln = contact["last_name"];
+                      final fn = contact.fullName;
 
-                      return '$fn $ln'.toLowerCase().contains(term);
+                      return fn.toLowerCase().contains(term);
                     });
                     final inTel = terms.every((term) {
-                      final tel = contact["tel"]!.replaceAll('-', '');
+                      final tel = contact.tel.replaceAll('-', '');
 
                       return tel.contains(term);
                     });
                     final inOrg = terms.every((term) {
-                      final org = contact["org"]!.toLowerCase();
+                      final org = contact.org?.toLowerCase();
 
-                      return org.toLowerCase().contains(term);
+                      return org?.contains(term) ?? false;
                     });
 
                     return inName || inTel || inOrg;
@@ -62,21 +76,44 @@ class _ContactState extends State<Contact> {
           ),
         ),
         const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  final dbDir = getDatabasesPath();
+                  const dbName = "cardrepo.db";
+                  final dbPath = '$dbDir/$dbName';
+                  print("Reset");
+
+                  deleteDatabase(dbPath);
+                });
+              },
+              child: const Text('Reset')
+            ),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text('Click'),
+            )
+          ],
+        ),
         Expanded(
           child: ListView.separated(
             shrinkWrap: true,
-            itemCount: exposedContacts.length,
+            itemCount: _contacts.length,
             itemBuilder: (BuildContext context, int idx) {
+              final contact = _contacts[idx];
+
               return Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
                 child: ContactCard(
-                  firstName: exposedContacts[idx]["first_name"],
-                  lastName: exposedContacts[idx]["last_name"],
-                  tel: exposedContacts[idx]["tel"],
-                  email: exposedContacts[idx]["email"],
-                  org: exposedContacts[idx]["org"],
-                  position: exposedContacts[idx]["position"],
-                  extLink: exposedContacts[idx]["ext_link"],
+                  fullName: contact.fullName,
+                  tel: contact.tel,
+                  email: contact.email,
+                  org: contact.org,
+                  position: contact.position,
+                  extLink: contact.extLink,
                 ),
               );
             },
@@ -89,10 +126,9 @@ class _ContactState extends State<Contact> {
 }
 
 class ContactCard extends StatefulWidget {
-  final String? firstName;
-  final String? lastName;
-  final String? tel;
-  final String? email;
+  final String fullName;
+  final String tel;
+  final String email;
   final String? org;
   final String? position;
   final String? extLink;
@@ -100,10 +136,9 @@ class ContactCard extends StatefulWidget {
 
   const ContactCard({
     super.key,
-    this.firstName,
-    this.lastName,
-    this.tel,
-    this.email,
+    required this.fullName,
+    required this.tel,
+    required this.email,
     this.org,
     this.position,
     this.extLink,
@@ -143,8 +178,7 @@ class _ContactCardState extends State<ContactCard> {
         ),
         if (extended)
           ContactCardDetail(
-            firstName: widget.firstName,
-            lastName: widget.lastName,
+            fullName: widget.fullName,
             tel: widget.tel,
             org: widget.org,
             position: widget.position,
@@ -153,8 +187,7 @@ class _ContactCardState extends State<ContactCard> {
           )
         else
           ContactCardSummary(
-            firstName: widget.firstName,
-            lastName: widget.lastName,
+            fullName: widget.fullName,
             tel: widget.tel,
           )
       ],
@@ -164,17 +197,14 @@ class _ContactCardState extends State<ContactCard> {
 }
 
 class ContactCardSummary extends StatelessWidget {
-  final String? firstName;
-  final String? lastName;
-  final String? tel;
+  final String fullName;
+  final String tel;
   // final Function handler;
 
   const ContactCardSummary({
     super.key,
-    this.firstName,
-    this.lastName,
-    this.tel,
-    // required this.handler,
+    required this.fullName,
+    required this.tel,
   });
 
   @override
@@ -183,11 +213,11 @@ class ContactCardSummary extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '$firstName $lastName',
+            fullName,
             style: Theme.of(context).textTheme.titleMedium
           ),
           const Spacer(),
-          Text(tel ?? ""),
+          Text(tel),
         ]
       ),
     );
@@ -195,20 +225,18 @@ class ContactCardSummary extends StatelessWidget {
 }
 
 class ContactCardDetail extends StatelessWidget {
-  final String? firstName;
-  final String? lastName;
-  final String? tel;
-  final String? email;
+  final String fullName;
+  final String tel;
+  final String email;
   final String? org;
   final String? position;
   final String? extLink;
 
   const ContactCardDetail({
     super.key,
-    this.firstName,
-    this.lastName,
-    this.tel,
-    this.email,
+    required this.fullName,
+    required this.tel,
+    required this.email,
     this.org,
     this.position,
     this.extLink,
@@ -223,68 +251,76 @@ class ContactCardDetail extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$firstName $lastName',
+                fullName,
                 style: Theme.of(context).textTheme.titleMedium
               ),
-              Row(
-                children: [
-                  Text(
-                    org ?? '',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  if (position != null)
-                    Row(
+              if (org != null)
+                Row(
+                  children: [
+                    Text(
+                      org!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (position != null)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            child: Center(
+                              child: Text(
+                                '|',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              )
+                            ),
+                          ),
+                          Text(
+                            position!,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          )
+                        ]
+                      )
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TEL',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),Text(
+                            'EMAIL',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: 16,
-                          child: Center(
-                            child: Text(
-                              '|',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            )
+                        Text(
+                          tel,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold
                           ),
                         ),
                         Text(
-                          position!,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        )
-                      ]
-                    )
-                ],
+                          email,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              if (tel != null)
-                Row(
-                  children: [
-                    Text(
-                      'TEL',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      tel!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ],
-                ),
-              if (email != null)
-                Row(
-                  children: [
-                    Text(
-                      'EMAIL',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      email!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ],
-                ),
             ],
           ),
         ],
