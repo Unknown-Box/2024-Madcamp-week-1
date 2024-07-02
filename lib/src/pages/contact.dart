@@ -9,6 +9,7 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactState extends State<Contact> {
+  String query = '';
   String searchBy = 'all';
   List<ContactModel> contacts = [];
   final ContactService contactService = ContactService();
@@ -19,11 +20,36 @@ class _ContactState extends State<Contact> {
 
     contactService
       .listContacts()
-      .then((initialContacts) async {
-        setState(() {
-          contacts = initialContacts;
-        });
-      });
+      .then(updateContactList);
+  }
+
+  void updateContactList(List<ContactModel> newContats) {
+    setState(() {
+      contacts = [...newContats];
+    });
+  }
+
+  void searchContacts() {
+    late final Future<List<ContactModel>> result;
+
+    switch(searchBy) {
+      case 'all':
+        result = contactService.searchContactsByNameOrOrg(query);
+        break;
+
+      case 'name':
+        result = contactService.searchContactsByName(query);
+        break;
+
+      case 'company':
+        result = contactService.searchContactsByOrg(query);
+        break;
+
+      default:
+        throw UnimplementedError('unimplemented search param');
+    }
+
+    result.then(updateContactList);
   }
 
   @override
@@ -76,6 +102,7 @@ class _ContactState extends State<Contact> {
                       setState(() {
                         searchBy = value;
                       });
+                      searchContacts();
                     }
                   }
                 )
@@ -93,29 +120,9 @@ class _ContactState extends State<Contact> {
                 )
               ),
               onChanged: (value) {
-                late final Future<List<ContactModel>> result;
-
-                switch(searchBy) {
-                  case 'all':
-                    result = contactService.searchContactsByNameOrOrg(value);
-                    break;
-
-                  case 'name':
-                    result = contactService.searchContactsByName(value);
-                    break;
-
-                  case 'company':
-                    result = contactService.searchContactsByOrg(value);
-                    break;
-
-                  default:
-                    throw UnimplementedError('unimplemented search param');
-                }
-
-                result.then((queriedContacts) {
-                  setState(() {
-                    contacts = queriedContacts;
-                  });
+                setState(() {
+                  query = value;
+                  searchContacts();
                 });
               },
             ),
@@ -142,6 +149,7 @@ class _ContactState extends State<Contact> {
                     org: contact.org,
                     position: contact.position,
                     extLink: contact.extLink,
+                    handler: searchContacts
                   ),
                 );
               },
@@ -165,6 +173,7 @@ class ContactCard extends StatefulWidget {
   final String? org;
   final String? position;
   final String? extLink;
+  final void Function() handler;
 
   const ContactCard({
     super.key,
@@ -175,6 +184,7 @@ class ContactCard extends StatefulWidget {
     this.org,
     this.position,
     this.extLink,
+    required this.handler
   });
 
   @override
@@ -201,7 +211,9 @@ class _ContactCardState extends State<ContactCard> {
               extLink: widget.extLink,
             ),
           )
-        );
+        ).then((_) {
+          widget.handler();
+        });
       },
       child: Column(
         children: [
@@ -555,7 +567,14 @@ class ContactDetails extends StatelessWidget {
                 const SizedBox(width: 36),
 
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final contactService = ContactService();
+                    final isRemoved = await contactService.removeContactById(id);
+
+                    if (isRemoved) {
+                      Navigator.pop(context);
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
