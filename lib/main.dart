@@ -20,7 +20,9 @@ class MyApp extends StatelessWidget {
       // main font: 'Avenir' (assets/fonts/..)
       theme: ThemeData(
         fontFamily: 'Avenir',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 255, 255, 255)),
+        brightness: Brightness.light,
+        canvasColor: Colors.white,
       ),
       themeMode: ThemeMode.system,
       home: App(),
@@ -60,10 +62,10 @@ class _AppState extends State<App> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Color.fromARGB(0, 0, 0, 1),
+              color: Color.fromARGB(0, 0, 0, 2),
               offset: Offset(0, -2.0),
               blurRadius: 4,
-              spreadRadius: 0,
+              spreadRadius: 3.0,
             ),
           ],
         ),
@@ -72,7 +74,7 @@ class _AppState extends State<App> {
           selectedFontSize: 13.0,
           unselectedFontSize: 14.0,
           selectedItemColor: Color.fromARGB(255, 0, 0, 0),
-          unselectedItemColor: Color.fromARGB(255, 139, 139, 139),
+          unselectedItemColor: Color.fromARGB(255, 176, 176, 176),
           currentIndex: pageIndex,
           onTap: (value) {
             setState(() {

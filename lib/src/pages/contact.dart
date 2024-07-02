@@ -277,14 +277,14 @@ class _ContactCardState extends State<ContactCard> {
                           'Company',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: const Color(0xFF7D7D7D),
-                            fontWeight: FontWeight.w400
+                            fontWeight: FontWeight.w500
                           ),
                         ),
                         Text(
                           'Email',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: const Color(0xFF7D7D7D),
-                            fontWeight: FontWeight.w400
+                            fontWeight: FontWeight.w500
                           ),
                         )
                       ],
@@ -296,15 +296,15 @@ class _ContactCardState extends State<ContactCard> {
                       Text(
                         widget.org ?? '',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: const Color(0xFF7F7F7F),
-                          fontWeight: FontWeight.w600
+                            color: Color.fromARGB(255, 63, 63, 63),
+                          fontWeight: FontWeight.w500
                         ),
                       ),
                       Text(
                         widget.email,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: const Color(0xFF7F7F7F),
-                          fontWeight: FontWeight.w600
+                            color: Color.fromARGB(255, 63, 63, 63),
+                          fontWeight: FontWeight.w500
                         ),
                       )
                     ],
