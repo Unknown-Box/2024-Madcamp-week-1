@@ -37,8 +37,6 @@ class _MypageState extends State<Mypage> {
   }
 
   void _saveContactInfo() async {
-    // Add your save logic here
-    // You can access the text fields' values using the controllers
     String name = _NameController.text;
     String phone = _phoneController.text;
     String email = _emailController.text;
@@ -50,9 +48,9 @@ class _MypageState extends State<Mypage> {
       fullName: name, 
       tel: phone,
       email: email,
-      org: org,
-      position: position,
-      extLink: url,
+      org: org.isEmpty ? null : org,
+      position: position.isEmpty ? null : position,
+      extLink: url.isEmpty ? null : url,
     );
                     
     if (isUpdated) {
