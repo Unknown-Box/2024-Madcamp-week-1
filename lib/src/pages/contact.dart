@@ -543,12 +543,11 @@ class ContactDetails extends StatelessWidget {
                     ),
                     elevation: 4,
                   ),
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 38,
-                    child: Text(
-                      'Edit',
-                      style: Theme.of(context).textTheme.labelMedium,
-                      textAlign: TextAlign.center,
+                    child: Icon(
+                      Icons.favorite_border,
+                      color: Colors.black,
                     ),
                   ),
                 ),
