@@ -146,6 +146,7 @@ class _ContactState extends State<Contact> {
                     fullName: contact.fullName,
                     tel: contact.tel,
                     email: contact.email,
+                    favorite: contact.favorite,
                     org: contact.org,
                     position: contact.position,
                     extLink: contact.extLink,
@@ -170,6 +171,7 @@ class ContactCard extends StatefulWidget {
   final String fullName;
   final String tel;
   final String email;
+  final bool favorite;
   final String? org;
   final String? position;
   final String? extLink;
@@ -181,6 +183,7 @@ class ContactCard extends StatefulWidget {
     required this.fullName,
     required this.tel,
     required this.email,
+    required this.favorite,
     this.org,
     this.position,
     this.extLink,
@@ -206,6 +209,7 @@ class _ContactCardState extends State<ContactCard> {
               fullName: widget.fullName,
               tel: widget.tel,
               email: widget.email,
+              favorite: widget.favorite,
               org: widget.org,
               position: widget.position,
               extLink: widget.extLink,
@@ -303,11 +307,12 @@ class _ContactCardState extends State<ContactCard> {
   }
 }
 
-class ContactDetails extends StatelessWidget {
+class ContactDetails extends StatefulWidget {
   final String id;
   final String fullName;
   final String tel;
   final String email;
+  final bool favorite;
   final String? org;
   final String? position;
   final String? extLink;
@@ -318,10 +323,25 @@ class ContactDetails extends StatelessWidget {
     required this.fullName,
     required this.tel,
     required this.email,
+    required this.favorite,
     this.org,
     this.position,
     this.extLink,
   });
+
+  @override
+  State<ContactDetails> createState() => _ContactDetailsState();
+}
+
+class _ContactDetailsState extends State<ContactDetails> {
+  bool favorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    favorite = widget.favorite;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +394,7 @@ class ContactDetails extends StatelessWidget {
                 vertical: 16,
               ),
               child: Text(
-                fullName,
+                widget.fullName,
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   height: 1.20,
                   fontSize: 32,
@@ -428,7 +448,7 @@ class ContactDetails extends StatelessWidget {
                             Expanded(
                               flex: 6,
                               child: Text(
-                                tel,
+                                widget.tel,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w800
                                 ),
@@ -452,7 +472,7 @@ class ContactDetails extends StatelessWidget {
                             Expanded(
                               flex: 6,
                               child: Text(
-                                email,
+                                widget.email,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w800
                                 ),
@@ -476,7 +496,7 @@ class ContactDetails extends StatelessWidget {
                             Expanded(
                               flex: 6,
                               child: Text(
-                                org ?? '',
+                                widget.org ?? '',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w800
                                 ),
@@ -500,7 +520,7 @@ class ContactDetails extends StatelessWidget {
                             Expanded(
                               flex: 6,
                               child: Text(
-                                position ?? '',
+                                widget.position ?? '',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w800
                                 ),
@@ -524,7 +544,7 @@ class ContactDetails extends StatelessWidget {
                             Expanded(
                               flex: 6,
                               child: Text(
-                                extLink ?? 'https://www.instagram.com/in.cs.tagram/',
+                                widget.extLink ?? 'https://www.instagram.com/in.cs.tagram/',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w800
                                 ),
@@ -544,7 +564,18 @@ class ContactDetails extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final contactService = ContactService();
+
+                    await contactService.patchFavoriteById(
+                      widget.id,
+                      !favorite
+                    );
+
+                    setState(() {
+                      favorite = !favorite;
+                    });
+                  },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -555,10 +586,12 @@ class ContactDetails extends StatelessWidget {
                     ),
                     elevation: 4,
                   ),
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: 38,
                     child: Icon(
-                      Icons.favorite_border,
+                      favorite
+                      ? Icons.favorite
+                      : Icons.favorite_border,
                       color: Colors.black,
                     ),
                   ),
@@ -569,7 +602,7 @@ class ContactDetails extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async {
                     final contactService = ContactService();
-                    final isRemoved = await contactService.removeContactById(id);
+                    final isRemoved = await contactService.removeContactById(widget.id);
 
                     if (isRemoved) {
                       Navigator.pop(context);

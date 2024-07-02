@@ -14,6 +14,7 @@ class ContactModel {
   final String tel;
   final String email;
   final String cardUrl;
+  final bool favorite;
   final String? org;
   final String? position;
   final String? extLink;
@@ -24,6 +25,7 @@ class ContactModel {
     required this.tel,
     required this.email,
     required this.cardUrl,
+    required this.favorite,
     this.org,
     this.position,
     this.extLink
@@ -35,7 +37,8 @@ class ContactModel {
       fullName: dict['fn']!,
       tel: dict['tel']!,
       email: dict['email']!,
-      cardUrl: dict['card_url'],
+      cardUrl: dict['card_url']!,
+      favorite: dict['favorite'] == 1,
       org: dict['org'],
       position: dict['position'],
       extLink: dict['ext_link']
@@ -44,14 +47,15 @@ class ContactModel {
 
   Map<String, dynamic> toDict() {
     return {
-      "id": id,
-      "fn": fullName,
-      "tel": tel,
-      "email": email,
-      "card_url": cardUrl,
-      "org": org,
-      "position": position,
-      "ext_link": extLink
+      'id': id,
+      'fn': fullName,
+      'tel': tel,
+      'email': email,
+      'card_url': cardUrl,
+      'favorite': favorite ? 1 : 0,
+      'org': org,
+      'position': position,
+      'ext_link': extLink
     };
   }
 }
@@ -93,6 +97,7 @@ class ContactService {
         tel: tel,
         email: email,
         cardUrl: cardImgPath,
+        favorite: false,
         org: org,
         position: position,
         extLink: extLink
@@ -156,7 +161,7 @@ class ContactService {
       'CONTACTS',
       where: 'id != ?',
       whereArgs: ['SELF'],
-      orderBy: "fn ASC",
+      orderBy: 'fn ASC',
     );
     final contacts = results.map(ContactModel.fromDict)
                             .toList();
@@ -170,7 +175,7 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "id != ? AND fn LIKE ? OR org LIKE ?",
+      where: 'id != ? AND fn LIKE ? OR org LIKE ?',
       whereArgs: ['SELF', '%$term%', '%$term%'],
       orderBy: 'fn ASC'
     );
@@ -186,7 +191,7 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "id != ? AND fn LIKE ?",
+      where: 'id != ? AND fn LIKE ?',
       whereArgs: ['SELF', '%$name%'],
       orderBy: 'fn ASC'
     );
@@ -202,7 +207,7 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "id != ? AND org LIKE ?",
+      where: 'id != ? AND org LIKE ?',
       whereArgs: ['SELF', '%$org%'],
       orderBy: 'org ASC, fn ASC'
     );
@@ -241,6 +246,7 @@ class ContactService {
       'tel': tel,
       'email': email,
       'card_url': '',
+      'favorite': 0,
       'org': org,
       'position': position,
       'ext_link': extLink
@@ -254,6 +260,23 @@ class ContactService {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       return true;
+    } catch(_) {
+      return false;
+    }
+  }
+
+  Future<bool> patchFavoriteById(String id, bool favorite) async {
+    final db = await repo.db;
+
+    try {
+      final isUpdated = await db.update(
+        'CONTACTS',
+        {'favorite': favorite ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [id]
+      );
+
+      return isUpdated == 1;
     } catch(_) {
       return false;
     }
@@ -293,6 +316,7 @@ class ContactService {
         tel: data['tel'] ?? '',
         email: data['email'] ?? '',
         cardUrl: '',
+        favorite: false,
         org: data['org'],
         position: data['position'],
         extLink: data['ext_link'],
