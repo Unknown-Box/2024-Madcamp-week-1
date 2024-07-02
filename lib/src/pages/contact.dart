@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cardrepo/src/services/contacts.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -11,6 +9,7 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactState extends State<Contact> {
+  String searchBy = 'all';
   List<ContactModel> contacts = [];
   final ContactService contactService = ContactService();
 
@@ -46,6 +45,41 @@ class _ContactState extends State<Contact> {
               ),
               constraints: const BoxConstraints(),
               leading: const Icon(Icons.search),
+              trailing: [
+                DropdownButton(
+                  value: searchBy,
+                  items: [
+                    DropdownMenuItem(
+                      value: 'all',
+                      child: Text(
+                        'all',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    ),
+                    DropdownMenuItem(
+                      value: 'name',
+                      child: Text(
+                        'name',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    ),
+                    DropdownMenuItem(
+                      value: 'company',
+                      child: Text(
+                        'company',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    ),
+                  ],
+                  onChanged: (String? value) {
+                    if (value != null) {
+                      setState(() {
+                        searchBy = value;
+                      });
+                    }
+                  }
+                )
+              ],
               hintText: 'Search by name or company',
               elevation: const WidgetStatePropertyAll(4),
               shape: WidgetStatePropertyAll(
@@ -58,6 +92,32 @@ class _ContactState extends State<Contact> {
                   color: Colors.black54,
                 )
               ),
+              onChanged: (value) {
+                late final Future<List<ContactModel>> result;
+
+                switch(searchBy) {
+                  case 'all':
+                    result = contactService.searchContactsByNameOrOrg(value);
+                    break;
+
+                  case 'name':
+                    result = contactService.searchContactsByName(value);
+                    break;
+
+                  case 'company':
+                    result = contactService.searchContactsByOrg(value);
+                    break;
+
+                  default:
+                    throw UnimplementedError('unimplemented search param');
+                }
+
+                result.then((queriedContacts) {
+                  setState(() {
+                    contacts = queriedContacts;
+                  });
+                });
+              },
             ),
           ),
 
@@ -284,6 +344,12 @@ class ContactDetails extends StatelessWidget {
                         blurRadius: 3.0,
                         spreadRadius: 1.0,
                       ),
+                      BoxShadow(
+                        color: Color.fromARGB(72, 98, 94, 94),
+                        offset: Offset(0, -1.0),
+                        blurRadius: 3.0,
+                        spreadRadius: 1.0,
+                      ),
                     ],
                   ),
                 ),
@@ -461,6 +527,61 @@ class ContactDetails extends StatelessWidget {
                 ),
               ),
             ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 4
+                    ),
+                    elevation: 4,
+                  ),
+                  child: SizedBox(
+                    width: 38,
+                    child: Text(
+                      'Edit',
+                      style: Theme.of(context).textTheme.labelMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 36),
+
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 4
+                    ),
+                    elevation: 4,
+                    backgroundColor: Colors.black,
+                  ),
+                  child: SizedBox(
+                    width: 38,
+                    child: Text(
+                      'Delete',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

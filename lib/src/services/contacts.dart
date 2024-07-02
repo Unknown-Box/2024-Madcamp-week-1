@@ -160,6 +160,54 @@ class ContactService {
     return contacts;
   }
 
+  Future<List<ContactModel>> searchContactsByNameOrOrg(
+    String term
+  ) async {
+    final db = await repo.db;
+    final results = await db.query(
+      'CONTACTS',
+      where: "fn LIKE ? OR org LIKE ?",
+      whereArgs: ['%$term%', '%$term%'],
+      orderBy: 'fn ASC'
+    );
+    final contacts = results.map(ContactModel.fromDict)
+                            .toList();
+
+    return contacts;
+  }
+
+  Future<List<ContactModel>> searchContactsByName(
+    String name
+  ) async {
+    final db = await repo.db;
+    final results = await db.query(
+      'CONTACTS',
+      where: "fn LIKE ?",
+      whereArgs: ['%$name%'],
+      orderBy: 'fn ASC'
+    );
+    final contacts = results.map(ContactModel.fromDict)
+                            .toList();
+
+    return contacts;
+  }
+
+  Future<List<ContactModel>> searchContactsByOrg(
+    String org
+  ) async {
+    final db = await repo.db;
+    final results = await db.query(
+      'CONTACTS',
+      where: "org LIKE ?",
+      whereArgs: ['%$org%'],
+      orderBy: 'org ASC, fn ASC'
+    );
+    final contacts = results.map(ContactModel.fromDict)
+                            .toList();
+
+    return contacts;
+  }
+
   Future<ContactModel?> getMyContact() async {
     final db = await repo.db;
     final results = await db.query(
