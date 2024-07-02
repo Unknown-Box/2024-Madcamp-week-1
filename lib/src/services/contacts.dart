@@ -154,6 +154,8 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
+      where: 'id != ?',
+      whereArgs: ['SELF'],
       orderBy: "fn ASC",
     );
     final contacts = results.map(ContactModel.fromDict)
@@ -168,8 +170,8 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "fn LIKE ? OR org LIKE ?",
-      whereArgs: ['%$term%', '%$term%'],
+      where: "id != ? AND fn LIKE ? OR org LIKE ?",
+      whereArgs: ['SELF', '%$term%', '%$term%'],
       orderBy: 'fn ASC'
     );
     final contacts = results.map(ContactModel.fromDict)
@@ -184,8 +186,8 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "fn LIKE ?",
-      whereArgs: ['%$name%'],
+      where: "id != ? AND fn LIKE ?",
+      whereArgs: ['SELF', '%$name%'],
       orderBy: 'fn ASC'
     );
     final contacts = results.map(ContactModel.fromDict)
@@ -200,8 +202,8 @@ class ContactService {
     final db = await repo.db;
     final results = await db.query(
       'CONTACTS',
-      where: "org LIKE ?",
-      whereArgs: ['%$org%'],
+      where: "id != ? AND org LIKE ?",
+      whereArgs: ['SELF', '%$org%'],
       orderBy: 'org ASC, fn ASC'
     );
     final contacts = results.map(ContactModel.fromDict)
@@ -211,15 +213,17 @@ class ContactService {
   }
 
   Future<ContactModel?> getMyContact() async {
-    final db = await repo.db;
-    final results = await db.query(
-      'CONTACTS',
-      where: 'id = ?',
-      whereArgs: ['SELF'],
-      limit: 1,
-    );
+    // final db = await repo.db;
+    // final results = await db.query(
+    //   'CONTACTS',
+    //   where: 'id = ?',
+    //   whereArgs: ['SELF'],
+    //   limit: 1,
+    // );
 
-    return results.isEmpty ? null : ContactModel.fromDict(results[0]);
+    // return results.isEmpty ? null : ContactModel.fromDict(results[0]);
+
+    return await getContactById('SELF');
   }
 
   Future<bool> udpateMyContact({
