@@ -1,7 +1,5 @@
 // name(first, last), tel, email, image(biz card), 
 // (opt)org, (opt)position, (opt)ext_link
-
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cardrepo/src/services/contacts.dart';
@@ -15,7 +13,6 @@ class Mypage extends StatefulWidget {
 }
 
 class _MypageState extends State<Mypage> {
-
   File? _image;
   final TextEditingController _NameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -35,7 +32,6 @@ class _MypageState extends State<Mypage> {
       });
     }
   }
-
   void _saveContactInfo() async {
     String name = _NameController.text;
     String phone = _phoneController.text;
