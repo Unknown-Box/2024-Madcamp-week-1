@@ -17,8 +17,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: theme,
+      // main font: 'Avenir' (assets/fonts/..)
+      theme: ThemeData(fontFamily: 'Avenir'),
+      themeMode: ThemeMode.system,
       home: const App(),
+      color: Colors.white,
     );
   }
 }
@@ -31,6 +34,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+ 
   int pageIndex = 1;
   Widget page = const Cards();
   String title = 'Business Cards';
@@ -40,46 +44,68 @@ class _AppState extends State<App> {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        titleTextStyle: TextStyle(
+          color: Colors.black,
+          fontSize: 24,
+          fontFamily: 'Avenir',
+          fontWeight: FontWeight.w800,
+        ),
         forceMaterialTransparency: true,
       ),
       body: page,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: pageIndex,
-        onTap: (value) {
-          setState(() {
-            pageIndex = value;
-            switch(value) {
-              case 0:
-                page = const Contact();
-                title = 'My Contacts';
-                break;
-              case 1:
-                page = const Cards();
-                title = 'Business Cards';
-                break;
-              case 2:
-                page = const Mypage();
-                title = 'Edit Your Information';
-                break;
-              default:
-                throw UnimplementedError('unimplemented page');
-            }
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'contacts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.credit_card),
-            label: 'cards',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'mypage',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(0, 0, 0, 1),
+              offset: Offset(0, -2.0),
+              blurRadius: 4,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: pageIndex,
+          onTap: (value) {
+            setState(() {
+              pageIndex = value;
+              switch(value) {
+                case 0:
+                  page = const Contact();
+                  title = 'My Contacts';
+                  break;
+                case 1:
+                  page = const Cards();
+                  title = 'Business Cards';
+                  break;
+                case 2:
+                  page = const Mypage();
+                  title = 'Edit Your Information';
+                  break;
+                default:
+                  throw UnimplementedError('unimplemented page');
+              }
+            });
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),
+              activeIcon: Image.asset('assets/images/searchicon.png', width: 15, height: 15),
+              label: 'contacts',
+            ),
+            BottomNavigationBarItem(
+              icon: Image.asset('assets/images/mainicon.png', width: 25, height: 25),
+              activeIcon: Image.asset('assets/images/mainicon.png', width: 15, height: 15),
+              label: 'cards',
+            ),
+            BottomNavigationBarItem(
+              icon: Image.asset('assets/images/mypage.png', width: 20, height: 20),
+              activeIcon: Image.asset('assets/images/mypage.png', width: 15, height: 15),
+              label: 'mypage',
+            ),
+          ],
+        ),
       ),
     );
   }

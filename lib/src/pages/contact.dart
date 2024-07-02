@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cardrepo/src/services/contacts.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 class Contact extends StatefulWidget {
   const Contact({super.key});
@@ -40,7 +43,7 @@ class _ContactState extends State<Contact> {
               padding: const WidgetStatePropertyAll(
                 EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 4
+                  vertical: 2
                 ),
               ),
               constraints: const BoxConstraints(),
@@ -52,21 +55,21 @@ class _ContactState extends State<Contact> {
                     DropdownMenuItem(
                       value: 'all',
                       child: Text(
-                        'all',
+                        'All',
                         style: Theme.of(context).textTheme.bodyMedium,
                       )
                     ),
                     DropdownMenuItem(
                       value: 'name',
                       child: Text(
-                        'name',
+                        'Name',
                         style: Theme.of(context).textTheme.bodyMedium,
                       )
                     ),
                     DropdownMenuItem(
                       value: 'company',
                       child: Text(
-                        'company',
+                        'Company',
                         style: Theme.of(context).textTheme.bodyMedium,
                       )
                     ),
@@ -80,7 +83,7 @@ class _ContactState extends State<Contact> {
                   }
                 )
               ],
-              hintText: 'Search by name or company',
+              hintText: 'Search Contacts',
               elevation: const WidgetStatePropertyAll(4),
               shape: WidgetStatePropertyAll(
                 RoundedRectangleBorder(
@@ -208,15 +211,23 @@ class _ContactCardState extends State<ContactCard> {
           Row(
             children: [
               Expanded(
-                child: Text(widget.fullName)
+                child: Text(
+                  widget.fullName,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   widget.tel,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.black45,
-                  )
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 112, 112, 112),
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.3,
+                  ),
                 )
               ),
 
@@ -270,14 +281,14 @@ class _ContactCardState extends State<ContactCard> {
                         widget.org ?? '',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: const Color(0xFF7F7F7F),
-                          fontWeight: FontWeight.w800
+                          fontWeight: FontWeight.w600
                         ),
                       ),
                       Text(
                         widget.email,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: const Color(0xFF7F7F7F),
-                          fontWeight: FontWeight.w800
+                          fontWeight: FontWeight.w600
                         ),
                       )
                     ],
@@ -321,12 +332,12 @@ class ContactDetails extends StatelessWidget {
           vertical: 8
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 0,
-                vertical: 16,
+                vertical: 10,
               ),
               child: AspectRatio(
                 aspectRatio: 1.6,
@@ -359,7 +370,7 @@ class ContactDetails extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 0,
-                vertical: 16,
+                vertical: 10,
               ),
               child: Text(
                 fullName,
@@ -381,80 +392,176 @@ class ContactDetails extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 0,
-                vertical: 16,
+                vertical: 10,
               ),
-              child: AspectRatio(
-                aspectRatio: 2,
-                child: Container(
-                  decoration: BoxDecoration(
+              child: Container(
+                decoration: BoxDecoration(
                     border: Border.all(
                       color: Colors.black,
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Mobile',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 2,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: Text(
+                              'Mobile',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF888888),
+                                fontWeight: FontWeight.w500
                               ),
                             ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                tel,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Email',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
+                          ),
+                          Expanded(
+                            flex: 6,
+                            child: SelectableText(
+                              tel,
+                              //overflow: TextOverflow.ellipsis, 
+                            ),                         
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.copy, color: Colors.grey, size: 12.0),
+                            onPressed: () async{
+                              await Clipboard.setData(
+                                new ClipboardData(text: tel)
+                              );
+                              await showDialog(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  title: Text(
+                                    "Copied to Clipboard!",
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w500),
+                                    ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('close'), 
+                                      onPressed: () => Navigator.of(context).pop(),
+                                    )
+                                  ],
+                                )
+                              );
+                            },
+                          ),
+                        ]                          
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: Text(
+                              'Email',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF888888),
+                                fontWeight: FontWeight.w500
                               ),
                             ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
+                          ),
+                          Expanded(
+                            flex: 6,
+                            child: Container(
+                              child: SelectableText(
                                 email,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  overflow: TextOverflow.ellipsis,
+                                ), 
                               ),
-                            )
-                          ],
-                        ),
-                        Row(
+                            ), 
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.copy, color: Colors.grey, size: 12.0),
+                            onPressed: () async{
+                              await Clipboard.setData(
+                                new ClipboardData(text: email)
+                              );
+                              await showDialog(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  title: Text(
+                                    "Copied to Clipboard!",
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w500),
+                                    ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('close'), 
+                                      onPressed: () => Navigator.of(context).pop(),
+                                    )
+                                  ],
+                                )
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: Text(
+                              'Company',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF888888),
+                                fontWeight: FontWeight.w500
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 6,
+                            child: Text(
+                              org ?? '',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: Text(
+                              'Position',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF888888),
+                                fontWeight: FontWeight.w500
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 6,
+                            child: Text(
+                              position ?? '',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )
+                        ],
+                      ),
+                      Row(
                           children: [
                             Expanded(
                               flex: 4,
                               child: Text(
-                                'Company',
+                                'URL',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: const Color(0xFF888888),
                                   fontWeight: FontWeight.w500
@@ -463,68 +570,23 @@ class ContactDetails extends StatelessWidget {
                             ),
                             Expanded(
                               flex: 6,
-                              child: Text(
-                                org ?? '',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800
-                                ),
+                              child: Linkify(
+                                onOpen: (link) async {
+                                  if (!await launchUrl(Uri.parse(link.url))) {
+                                    throw Exception('Could not launch ${link.url}');
+                                  }
+                                },
                                 overflow: TextOverflow.ellipsis,
-                              ),
+                                text: extLink ?? 'https://www.instagram.com/in.cs.tagram/',
+                                style: TextStyle(color: Colors.black),
+                                linkStyle: TextStyle(color: Color.fromARGB(255, 72, 109, 174)),
+                              )
                             )
                           ],
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Position',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                position ?? '',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Additional Link',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                extLink ?? 'https://www.instagram.com/in.cs.tagram/',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
+                    ],
                     ),
                   ),
-                ),
               ),
             ),
 
@@ -538,13 +600,13 @@ class ContactDetails extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 15,
                       vertical: 4
                     ),
                     elevation: 4,
                   ),
                   child: const SizedBox(
-                    width: 38,
+                    width: 40,
                     child: Icon(
                       Icons.favorite_border,
                       color: Colors.black,
@@ -552,7 +614,7 @@ class ContactDetails extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(width: 36),
+                const SizedBox(width: 20),
 
                 ElevatedButton(
                   onPressed: () {},
@@ -561,14 +623,14 @@ class ContactDetails extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 15,
                       vertical: 4
                     ),
                     elevation: 4,
                     backgroundColor: Colors.black,
                   ),
                   child: SizedBox(
-                    width: 38,
+                    width: 40,
                     child: Text(
                       'Delete',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -580,10 +642,12 @@ class ContactDetails extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 }
+
+

@@ -38,36 +38,48 @@ class _CardsState extends State<Cards> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GridView.builder(
-        shrinkWrap: true,
-        physics: ScrollPhysics(),
-        scrollDirection:Axis.vertical,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1,
-          childAspectRatio: 9.0 / 5.0,
-          mainAxisSpacing: 10.0,
-          crossAxisSpacing: 10.0,
-        ),
-        itemCount: imagesList.length,
-        itemBuilder: (BuildContext context, int index){
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5.0),
-              image: DecorationImage(
-                image: AssetImage(imagesList[index]),
-                fit: BoxFit.cover,
+      body: Center(      
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Container(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: ScrollPhysics(),
+              scrollDirection:Axis.vertical,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                childAspectRatio: 9.0 / 5.0,
+                mainAxisSpacing: 10.0,
+                crossAxisSpacing: 10.0,          
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromARGB(72, 98, 94, 94),
-                  offset: Offset(0, 5.0),
-                  blurRadius: 3.0,
-                  spreadRadius: 1.0,
-                ),
-              ],
+              itemCount: imagesList.length,
+              itemBuilder: (BuildContext context, int index){
+                return Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5.0),
+                    image: DecorationImage(
+                      image: AssetImage(imagesList[index]),
+                      fit: BoxFit.fill,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromARGB(70, 211, 211, 211),
+                        offset: Offset(0, -1.0),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Color.fromARGB(72, 98, 94, 94),
+                        offset: Offset(0, 5.0),
+                        blurRadius: 3.0,
+                        spreadRadius: 1.0,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
