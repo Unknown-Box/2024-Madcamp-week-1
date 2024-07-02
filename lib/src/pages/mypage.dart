@@ -122,6 +122,9 @@ class _MypageState extends State<Mypage> {
                     child: Text(
                       'Full Name',
                       textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
@@ -135,6 +138,9 @@ class _MypageState extends State<Mypage> {
                     child: Text(
                       'Phone Number',
                       textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
@@ -148,6 +154,9 @@ class _MypageState extends State<Mypage> {
                     child: Text(
                       'Email Address',
                       textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
@@ -161,6 +170,9 @@ class _MypageState extends State<Mypage> {
                     child: Text(
                       'Organization (Optional)',
                       textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
@@ -174,6 +186,9 @@ class _MypageState extends State<Mypage> {
                     child: Text(
                       'Position (Optional)', 
                       textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
@@ -186,11 +201,14 @@ class _MypageState extends State<Mypage> {
                     padding: EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 0.0),
                     child: Text(
                       'External Profile Link (Optional)',
-                      textAlign: TextAlign.left
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   SizedBox(height: 3.0),
-                  buildPos(),
+                  buildUrl(),
 
                   SizedBox(height: 5.0),
                     // Save button
@@ -198,11 +216,11 @@ class _MypageState extends State<Mypage> {
                     onPressed: _saveContactInfo,
                     child: Text('Save'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
+                      backgroundColor: Color.fromARGB(255, 37, 37, 37),
                       foregroundColor: Colors.white,
                       elevation: 5,
                       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      textStyle: TextStyle(fontSize: 13),
+                      textStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],

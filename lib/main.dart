@@ -18,10 +18,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       // main font: 'Avenir' (assets/fonts/..)
-      theme: ThemeData(fontFamily: 'Avenir'),
+      theme: ThemeData(
+        fontFamily: 'Avenir',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
+      ),
       themeMode: ThemeMode.system,
-      home: const App(),
-      color: Colors.white,
+      home: App(),
     );
   }
 }
@@ -66,6 +68,11 @@ class _AppState extends State<App> {
           ],
         ),
         child: BottomNavigationBar(
+          backgroundColor: Colors.white,
+          selectedFontSize: 13.0,
+          unselectedFontSize: 14.0,
+          selectedItemColor: Color.fromARGB(255, 0, 0, 0),
+          unselectedItemColor: Color.fromARGB(255, 139, 139, 139),
           currentIndex: pageIndex,
           onTap: (value) {
             setState(() {
@@ -91,18 +98,18 @@ class _AppState extends State<App> {
           items: [
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),
-              activeIcon: Image.asset('assets/images/searchicon.png', width: 15, height: 15),
-              label: 'contacts',
+              activeIcon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),
+              label: 'Contacts',
             ),
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/mainicon.png', width: 25, height: 25),
-              activeIcon: Image.asset('assets/images/mainicon.png', width: 15, height: 15),
-              label: 'cards',
+              activeIcon: Image.asset('assets/images/mainicon.png', width: 25, height: 25),
+              label: 'Cards',
             ),
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/mypage.png', width: 20, height: 20),
-              activeIcon: Image.asset('assets/images/mypage.png', width: 15, height: 15),
-              label: 'mypage',
+              activeIcon: Image.asset('assets/images/mypage.png', width: 20, height: 20),
+              label: 'Mypage',
             ),
           ],
         ),
