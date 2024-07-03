@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       // main font: 'Avenir' (assets/fonts/..)
       theme: ThemeData(
         fontFamily: 'Avenir',
-        colorScheme: 
+        colorScheme:
           ColorScheme.fromSeed(seedColor: Colors.white),
         canvasColor: Colors.white,
       ),
@@ -63,8 +63,9 @@ class _AppState extends State<App> {
           title = 'Business Cards';
           break;
         case 2:
-          page = Mypage();
-          title = 'Edit Your Information';
+          page = myInfoDetails();
+          // page = Mypage();
+          title = 'My Information';
           break;
         default:
           throw UnimplementedError('unimplemented page');
@@ -110,7 +111,7 @@ class _AppState extends State<App> {
           selectedItemColor: Color.fromARGB(255, 0, 0, 0),
           unselectedItemColor: Color.fromARGB(255, 176, 176, 176),
           currentIndex: pageIndex,
-          onTap: switchPage, 
+          onTap: switchPage,
           items: [
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),

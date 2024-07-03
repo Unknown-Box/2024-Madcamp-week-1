@@ -1,38 +1,59 @@
-// name(first, last), tel, email, image(biz card), 
+// name(first, last), tel, email, image(biz card),
 // (opt)org, (opt)position, (opt)ext_link
 
+import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cardrepo/src/services/contacts.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 
 class myInfoDetails extends StatefulWidget {
-  final String id;
-  final String fullName;
-  final String tel;
-  final String email;
-  final String? org;
-  final String? position;
-  final String? extLink;
 
-  const myInfoDetails({
-    super.key,
-    required this.id,
-    required this.fullName,
-    required this.tel,
-    required this.email,
-    this.org,
-    this.position,
-    this.extLink,
-  });
+  const myInfoDetails({ super.key });
 
   @override
   State<myInfoDetails> createState() => _myInfoDetailsState();
 }
 
 class _myInfoDetailsState extends State<myInfoDetails> {
+  String id = '';
+  String fullName = '';
+  String tel = '';
+  String email = '';
+  String cardUrl = '';
+  String? org = '';
+  String? position = '';
+  String? extLink = '';
+  final contactService = ContactService();
+
+  @override
+  void initState() {
+    super.initState();
+
+    contactService
+      .getMyContact()
+      .then((contact) {
+        if (contact == null) {
+          return;
+        }
+
+        setState(() {
+          id = contact.id;
+          fullName = contact.fullName;
+          tel = contact.tel;
+          email = contact.email;
+          cardUrl = contact.cardUrl;
+          org = contact.org;
+          position = contact.position;
+          extLink = contact.extLink;
+        });
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,224 +64,107 @@ class _myInfoDetailsState extends State<myInfoDetails> {
           horizontal: 16,
           vertical: 12
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 0,
-                vertical: 10,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 0,
+                  vertical: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1.6,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5.0),
+                      image: DecorationImage(
+                        image: FileImage(File(cardUrl)),
+                        fit: BoxFit.cover
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(72, 98, 94, 94),
+                          offset: Offset(0, 5.0),
+                          blurRadius: 3.0,
+                          spreadRadius: 1.0,
+                        ),
+                        BoxShadow(
+                          color: Color.fromARGB(72, 98, 94, 94),
+                          offset: Offset(0, -1.0),
+                          blurRadius: 3.0,
+                          spreadRadius: 1.0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              child: AspectRatio(
-                aspectRatio: 1.6,
+
+              // Full Name display
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 0,
+                  vertical: 7,
+                ),
+                child: Text(
+                  fullName,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    height: 1.20,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    shadows: const <Shadow>[
+                      Shadow(
+                        color: Color(0x40000000),
+                        offset: Offset(0, 3),
+                        blurRadius: 3,
+                      )
+                    ],
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 25),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5.0),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/1.png'),
-                      fit: BoxFit.cover,
+                      border: Border.all(
+                        color: Color.fromARGB(255, 193, 193, 193),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(72, 98, 94, 94),
+                          offset: Offset(0, 3.0),
+                          blurRadius: 5.0,
+                          spreadRadius: 1.0,
+                        ),
+                        BoxShadow(
+                          color: Color.fromARGB(72, 98, 94, 94),
+                          offset: Offset(0, -1.0),
+                          blurRadius: 3.0,
+                          spreadRadius: 1.0,
+                        ),
+                      ],
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color.fromARGB(72, 98, 94, 94),
-                        offset: Offset(0, 5.0),
-                        blurRadius: 3.0,
-                        spreadRadius: 1.0,
-                      ),
-                      BoxShadow(
-                        color: Color.fromARGB(72, 98, 94, 94),
-                        offset: Offset(0, -1.0),
-                        blurRadius: 3.0,
-                        spreadRadius: 1.0,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
-            // Full Name display
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 0,
-                vertical: 7,
-              ),
-              child: Text(
-                widget.fullName,
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  height: 1.20,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  shadows: const <Shadow>[
-                    Shadow(
-                      color: Color(0x40000000),
-                      offset: Offset(0, 3),
-                      blurRadius: 3,
-                    )
-                  ],
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 25),
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color.fromARGB(255, 193, 193, 193),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color.fromARGB(72, 98, 94, 94),
-                        offset: Offset(0, 3.0),
-                        blurRadius: 5.0,
-                        spreadRadius: 1.0,
-                      ),
-                      BoxShadow(
-                        color: Color.fromARGB(72, 98, 94, 94),
-                        offset: Offset(0, -1.0),
-                        blurRadius: 3.0,
-                        spreadRadius: 1.0,
-                      ),
-                    ],
-                  ),
-                child: Padding(
-                  // detail box inner padding
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-                  // detail column
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    // contents: tel, email, comp, pos, url
-                    children: [
-                      // phone #
-                      Container(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Mobile',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                ),
-                                widget.tel,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ]                          
-                        ),
-                      ),
-                      SizedBox(height:15),
-                      // email
-                      Container(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Email',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Container(
-                                child: Text(
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13,
-                                  ),
-                                  widget.email,
-                                  overflow: TextOverflow.ellipsis,  
-                                ), 
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height:15),
-                      // company
-                      Container(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                'Company',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                widget.org ?? '',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ), 
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(height:15),
-                      // position
-                      Container(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(
-                                'Position',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: const Color(0xFF888888),
-                                  fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: Text(
-                                widget.position ?? '',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(height:15),
-                      // url
-                      Container(
-                        child: Row(
+                  child: Padding(
+                    // detail box inner padding
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                    // detail column
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      // contents: tel, email, comp, pos, url
+                      children: [
+                        // phone #
+                        Container(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 4,
                                 child: Text(
-                                  'URL',
+                                  'Mobile',
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: const Color(0xFF888888),
                                     fontWeight: FontWeight.w500
@@ -269,102 +173,227 @@ class _myInfoDetailsState extends State<myInfoDetails> {
                               ),
                               Expanded(
                                 flex: 6,
-                                child: Linkify(
-                                  onOpen: (link) async {
-                                    if (!await launchUrl(Uri.parse(link.url))) {
-                                      throw Exception('Could not launch ${link.url}');
-                                    }
-                                  },
+                                child: Text(
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                  tel,
                                   overflow: TextOverflow.ellipsis,
-                                  text: widget.extLink ?? 'https://www.instagram.com/in.cs.tagram/',
-                                  style: TextStyle(color: Colors.black),
-                                  linkStyle: TextStyle(color: Color.fromARGB(255, 72, 109, 174)),
-                                )
+                                ),
+                              ),
+                            ]
+                          ),
+                        ),
+                        SizedBox(height:15),
+                        // email
+                        Container(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  'Email',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: const Color(0xFF888888),
+                                    fontWeight: FontWeight.w500
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 6,
+                                child: Container(
+                                  child: Text(
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                    ),
+                                    email,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height:15),
+                        // company
+                        Container(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 6,
+                                child: Text(
+                                  'Company',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: const Color(0xFF888888),
+                                    fontWeight: FontWeight.w500
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 6,
+                                child: Text(
+                                  org ?? '',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               )
                             ],
                           ),
-                      ),
-                    ],
+                        ),
+                        SizedBox(height:15),
+                        // position
+                        Container(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  'Position',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: const Color(0xFF888888),
+                                    fontWeight: FontWeight.w500
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 6,
+                                child: Text(
+                                  position ?? '',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        SizedBox(height:15),
+                        // url
+                        Container(
+                          child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 4,
+                                  child: Text(
+                                    'URL',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: const Color(0xFF888888),
+                                      fontWeight: FontWeight.w500
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 6,
+                                  child: Linkify(
+                                    onOpen: (link) async {
+                                      if (!await launchUrl(Uri.parse(link.url))) {
+                                        throw Exception('Could not launch ${link.url}');
+                                      }
+                                    },
+                                    overflow: TextOverflow.ellipsis,
+                                    text: extLink ?? 'https://www.instagram.com/in.cs.tagram/',
+                                    style: TextStyle(color: Colors.black),
+                                    linkStyle: TextStyle(color: Color.fromARGB(255, 72, 109, 174)),
+                                  )
+                                )
+                              ],
+                            ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            // edit and delete button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Edit Button
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => Mypage(
-                          /*
-                          myInfoDetails(
-                            id: 'SELF',
-                            fullName: '',
-                            tel: '',
-                            email: '',
-                            org: '',
-                            position: '',
-                            extLink: '',
-                          );
-                          */
+              // edit and delete button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Edit Button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => Mypage(),
                         ),
+                      ).then((_) {
+                        //widget.handler();
+                        contactService
+                          .getMyContact()
+                          .then((contact) {
+                            if (contact == null) {
+                              return;
+                            }
+
+                            setState(() {
+                              id = contact.id;
+                              fullName = contact.fullName;
+                              tel = contact.tel;
+                              email = contact.email;
+                              cardUrl = contact.cardUrl;
+                              org = contact.org;
+                              position = contact.position;
+                              extLink = contact.extLink;
+                            });
+                          });
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ).then((_) {
-                      //widget.handler();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 4
+                      ),
+                      elevation: 4,
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 4
-                    ),
-                    elevation: 4,
-                  ),
-                  child: SizedBox(
-                    width: 60,
-                    child: Text(
-                      'Edit',
-                      style: TextStyle(color: Colors.black),
-                      textAlign: TextAlign.center,
+                    child: SizedBox(
+                      width: 60,
+                      child: Text(
+                        'Edit',
+                        style: TextStyle(color: Colors.black),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 20),
-                // QR Code (fake)
-                ElevatedButton(
-                  onPressed: () {
-                    // void
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(width: 20),
+                  // QR Code (fake)
+                  ElevatedButton(
+                    onPressed: () {
+                      // void
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 4
+                      ),
+                      elevation: 4,
+                      backgroundColor: Colors.black
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 4
+                    child: SizedBox(
+                      width: 60,
+                      child: Text(
+                        'QR Code',
+                        style: TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    elevation: 4,
-                    backgroundColor: Colors.black
                   ),
-                  child: SizedBox(
-                    width: 60,
-                    child: Text(
-                      'QR Code',
-                      style: TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ), 
-              ],
-            ),
-            const SizedBox(height: 30),
-          ],
+                ],
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
@@ -374,14 +403,6 @@ class _myInfoDetailsState extends State<myInfoDetails> {
 
 // editing screen
 class Mypage extends StatefulWidget {
-  String? fullName;
-  String? tel;
-  String? email;
-  String? cardUrl;
-  String? org;
-  String? position;
-  String? extLink;
-
   Mypage({super.key});
 
   @override
@@ -389,7 +410,14 @@ class Mypage extends StatefulWidget {
 }
 
 class _MypageState extends State<Mypage> {
-  File? _image;
+  int flag = 0;
+  String fullName = '';
+  String tel = '';
+  String email = '';
+  String cardUrl = '';
+  String? org;
+  String? position;
+  String? extLink;
   final TextEditingController _NameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -397,41 +425,6 @@ class _MypageState extends State<Mypage> {
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
   ContactService contactService = ContactService();
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
-  }
-  void _saveContactInfo() async {
-    String name = _NameController.text;
-    String phone = _phoneController.text;
-    String email = _emailController.text;
-    String org = _orgController.text;
-    String position = _positionController.text;
-    String url = _urlController.text;
-
-    final isUpdated = await contactService.udpateMyContact(
-      fullName: name, 
-      tel: phone,
-      email: email,
-      org: org.isEmpty ? null : org,
-      position: position.isEmpty ? null : position,
-      extLink: url.isEmpty ? null : url,
-    );
-                    
-    if (isUpdated) {
-      print('Saved info: $name $phone $email $org $position $url');
-    } else {
-      print('No datas to be updated');
-    }
-
-  }
 
   @override
   void initState() {
@@ -442,10 +435,92 @@ class _MypageState extends State<Mypage> {
     _orgController.addListener(() => setState(() {}));
     _positionController.addListener(() => setState(() {}));
     _urlController.addListener(() => setState(() {}));
+
+    contactService
+      .getMyContact()
+      .then((contact) {
+        if (contact == null) {
+          return;
+        }
+
+        setState(() {
+          fullName = contact.fullName;
+          tel = contact.tel;
+          email = contact.email;
+          cardUrl = contact.cardUrl;
+          org = contact.org;
+          position = contact.position;
+          extLink = contact.extLink;
+
+          _NameController.text = fullName;
+          _phoneController.text = tel;
+          _emailController.text = email;
+          _orgController.text = org ?? '';
+          _positionController.text = position ?? '';
+          _urlController.text = extLink ?? '';
+        });
+      });
+  }
+
+  Future<void> _pickImage() async {
+    final pics = await CunningDocumentScanner.getPictures(
+      noOfPages: 1,
+      isGalleryImportAllowed: true
+    );
+    final pic = pics?.firstOrNull;
+
+    if (pic != null) {
+      final picFile = File(pic);
+      final imgPath = setExtension(
+        join(
+          (await getApplicationDocumentsDirectory()).path,
+          'cards',
+          'SELF'
+        ),
+        extension(pic)
+      );
+      final copiedFile = await picFile.copy(imgPath);
+
+      setState(() {
+        flag = flag + 1;
+        cardUrl = picFile.path;
+        // cardUrl = copiedFile.path;
+      });
+    } else {
+      print('no image selected');
+    }
+  }
+
+  Future<void> _saveContactInfo() async {
+    String name = _NameController.text;
+    String phone = _phoneController.text;
+    String email = _emailController.text;
+    String org = _orgController.text;
+    String position = _positionController.text;
+    String url = _urlController.text;
+
+    final isUpdated = await contactService.udpateMyContact(
+      fullName: name,
+      tel: phone,
+      email: email,
+      cardUrl: cardUrl,
+      org: org.isEmpty ? null : org,
+      position: position.isEmpty ? null : position,
+      extLink: url.isEmpty ? null : url,
+    );
+
+    if (isUpdated) {
+      print('Saved info: $name $phone $email $cardUrl$org $position $url');
+    } else {
+      print('No datas to be updated');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('build');
+    print(cardUrl);
+    print(flag);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -458,7 +533,7 @@ class _MypageState extends State<Mypage> {
       body: Center(
         child: SingleChildScrollView(
               reverse: true,
-              padding: EdgeInsets.all(10),  
+              padding: EdgeInsets.all(10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
@@ -468,14 +543,13 @@ class _MypageState extends State<Mypage> {
                     children: [
                       AspectRatio(
                         aspectRatio: 9.0 / 5.0,
-                        child: Container(           
+                        child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(3.0),
                             image: DecorationImage(
-                              image: _image != null
-                                  ? FileImage(_image!)
-                                  : AssetImage('assets/images/1.png')
-                                      as ImageProvider,
+                              image: FileImage(
+                                File(cardUrl ?? '')
+                              ),
                               fit: BoxFit.cover,
                             ),
                             boxShadow: [
@@ -497,7 +571,7 @@ class _MypageState extends State<Mypage> {
                       ),
                     ],
                   ),
-                  
+
                   SizedBox(height: 10.0),
                   // name
                   Container(
@@ -528,8 +602,8 @@ class _MypageState extends State<Mypage> {
                     ),
                   ),
                   SizedBox(height: 3.0),
-                  buildPhone(),                                    
-                  
+                  buildPhone(),
+
                   SizedBox(height: 5.0),
                   // email
                   Container(
@@ -545,7 +619,7 @@ class _MypageState extends State<Mypage> {
                   ),
                   SizedBox(height: 3.0),
                   buildEmail(),
-                  
+
                   SizedBox(height: 5.0),
                   // organization
                   Container(
@@ -561,14 +635,14 @@ class _MypageState extends State<Mypage> {
                   ),
                   SizedBox(height: 3.0),
                   buildOrg(),
-                  
+
                   SizedBox(height: 5.0),
                   // position
                   Container(
                     width: 500,
                     padding: EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 0.0),
                     child: Text(
-                      'Position (Optional)', 
+                      'Position (Optional)',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -597,7 +671,10 @@ class _MypageState extends State<Mypage> {
                   SizedBox(height: 5.0),
                     // Save button
                   ElevatedButton(
-                    onPressed: _saveContactInfo,
+                    onPressed: () async {
+                      await _saveContactInfo();
+                      Navigator.of(context).pop();
+                    },
                     child: Text('Save'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color.fromARGB(255, 37, 37, 37),
@@ -608,7 +685,7 @@ class _MypageState extends State<Mypage> {
                     ),
                   ),
                 ],
-              ),    
+              ),
             ),
           )
     );
@@ -633,7 +710,7 @@ class _MypageState extends State<Mypage> {
     }
     return null;
   }
-  
+
   InputBorder _customBorder(double width, Color color) {
     return OutlineInputBorder(
       borderSide: BorderSide(
@@ -645,6 +722,9 @@ class _MypageState extends State<Mypage> {
 
   Widget buildName() {
     var value = "";
+    print(null);
+    print(fullName);
+    print(_NameController);
     return TextFormField(
       controller: _NameController,
       validator: (value) {
@@ -653,7 +733,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (name) {
         value = name;
       },
-      initialValue: widget.fullName,
+      // initialValue: fullName,
       decoration: InputDecoration(
         errorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
         focusedErrorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
@@ -673,7 +753,7 @@ class _MypageState extends State<Mypage> {
       textInputAction: TextInputAction.done,
     );
   }
-  
+
   Widget buildPhone() {
     var value = "";
     return TextFormField(
@@ -684,7 +764,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (phone) {
         value = phone;
       },
-      initialValue: widget.tel,
+      // initialValue: tel,
       decoration: InputDecoration(
         errorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
         focusedErrorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
@@ -704,7 +784,7 @@ class _MypageState extends State<Mypage> {
       textInputAction: TextInputAction.done,
     );
   }
-  
+
   Widget buildEmail() {
     var value = "";
     return TextFormField(
@@ -715,7 +795,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (email) {
         value = email;
       },
-      initialValue: widget.email,
+      // initialValue: email,
       decoration: InputDecoration(
         errorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
         focusedErrorBorder: _customBorder(1, const Color.fromARGB(255, 227, 90, 80)),
@@ -735,7 +815,7 @@ class _MypageState extends State<Mypage> {
       textInputAction: TextInputAction.done,
     );
   }
-  
+
   Widget buildOrg() {
     var value = "";
     return TextFormField(
@@ -743,7 +823,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (org) {
         value = org;
       },
-      initialValue: widget.org,
+      // initialValue: org ?? '',
       decoration: InputDecoration(
         // hintText: 'organization',
         // hintStyle: TextStyle(fontWeight: FontWeight.w300),
@@ -767,7 +847,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (pos) {
         value = pos;
       },
-      initialValue: widget.position,
+      // initialValue: position ?? '',
       decoration: InputDecoration(
         // hintText: 'Job Position',
         // hintStyle: TextStyle(fontWeight: FontWeight.w300),
@@ -791,7 +871,7 @@ class _MypageState extends State<Mypage> {
       onChanged: (url) {
         value = url;
       },
-      initialValue: widget.extLink,
+      // initialValue: extLink ?? '',
       decoration: InputDecoration(
         hintText: 'www.example.com',
         hintStyle: TextStyle(fontWeight: FontWeight.w300),

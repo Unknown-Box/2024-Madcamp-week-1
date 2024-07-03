@@ -88,7 +88,9 @@ class ContactService {
       limit: 1,
     );
 
-    return results.isEmpty ? null : ContactModel.fromDict(results[0]);
+    return results.isEmpty
+      ? null
+      : ContactModel.fromDict(results.first);
   }
 
   Future<void> insertContact({
@@ -262,6 +264,7 @@ class ContactService {
     String? fullName,
     String? tel,
     String? email,
+    String? cardUrl,
     String? org,
     String? position,
     String? extLink
@@ -272,7 +275,7 @@ class ContactService {
       'fn': fullName,
       'tel': tel,
       'email': email,
-      'card_url': '',
+      'card_url': cardUrl,
       'favorite': 0,
       'org': org,
       'position': position,
@@ -281,11 +284,12 @@ class ContactService {
     record.removeWhere((_, value) => value == null);
 
     try {
-      await db.insert(
+      final a = await db.insert(
         'CONTACTS',
         record,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      print(a);
       return true;
     } catch(_) {
       return false;
