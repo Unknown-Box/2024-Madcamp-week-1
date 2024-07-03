@@ -60,12 +60,13 @@ class _ContactState extends State<Contact> {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
-        vertical: 8
+        vertical: 20
       ),
       child: Column(
         children: [
           Center(
             child: SearchBar(
+              backgroundColor: WidgetStatePropertyAll(Color.fromARGB(245, 245, 245, 245)),
               padding: const WidgetStatePropertyAll(
                 EdgeInsets.symmetric(
                   horizontal: 16,
@@ -363,7 +364,14 @@ class _ContactDetailsState extends State<ContactDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+        elevation: 10.0,
+        shadowColor: Color.fromARGB(152, 241, 241, 241),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -738,7 +746,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            // const SizedBox(height: 30),
           ],
         ),
       ),

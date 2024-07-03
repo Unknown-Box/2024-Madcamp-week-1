@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:path/path.dart';
 import './src/pages/cards.dart';
 import './src/pages/contact.dart';
 import './src/pages/mypage.dart';
@@ -25,8 +26,8 @@ class MyApp extends StatelessWidget {
       // main font: 'Avenir' (assets/fonts/..)
       theme: ThemeData(
         fontFamily: 'Avenir',
-        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 255, 255, 255)),
-        brightness: Brightness.light,
+        colorScheme: 
+          ColorScheme.fromSeed(seedColor: Colors.white),
         canvasColor: Colors.white,
       ),
       themeMode: ThemeMode.system,
@@ -62,7 +63,7 @@ class _AppState extends State<App> {
           title = 'Business Cards';
           break;
         case 2:
-          page = const Mypage();
+          page = Mypage();
           title = 'Edit Your Information';
           break;
         default:
@@ -74,15 +75,20 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        foregroundColor: Colors.white,
         title: Text(title),
         titleTextStyle: TextStyle(
           color: Colors.black,
           fontSize: 24,
-          fontFamily: 'Avenir',
+          fontFamily: 'RobotoSerif',
           fontWeight: FontWeight.w800,
         ),
-        forceMaterialTransparency: true,
+        elevation: 10.0,
+        shadowColor: Color.fromARGB(152, 241, 241, 241),
       ),
       body: page,
       bottomNavigationBar: Container(
@@ -104,7 +110,7 @@ class _AppState extends State<App> {
           selectedItemColor: Color.fromARGB(255, 0, 0, 0),
           unselectedItemColor: Color.fromARGB(255, 176, 176, 176),
           currentIndex: pageIndex,
-          onTap: switchPage,
+          onTap: switchPage, 
           items: [
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),
@@ -124,87 +130,6 @@ class _AppState extends State<App> {
           ],
         ),
       ),
-      // floatingActionButtonLocation: ExpandableFab.location,
-      // floatingActionButton: ExpandableFab(
-      //   key: _key,
-      //   distance: 80,
-      //   type: ExpandableFabType.up,
-      //   pos: ExpandableFabPos.right,
-      //   overlayStyle: ExpandableFabOverlayStyle(
-      //     color: Colors.black.withOpacity(0.2),
-      //     blur: 4,
-      //   ),
-      //   openButtonBuilder: RotateFloatingActionButtonBuilder(
-      //     shape: const CircleBorder(),
-      //     child: const Icon(Icons.add),
-      //   ),
-      //   closeButtonBuilder: RotateFloatingActionButtonBuilder(
-      //     shape: const CircleBorder(),
-      //     child: const Icon(Icons.close),
-      //   ),
-      //   children: [
-      //     FloatingActionButton(
-      //       onPressed: () async {
-      //         _key.currentState?.toggle();
-      //         switchPage(0);
-
-      //         try {
-      //           // final pics = await CunningDocumentScanner.getPictures(
-      //           //   noOfPages: 1,
-      //           //   isGalleryImportAllowed: true
-      //           // );
-      //           // final pic = pics?.firstOrNull;
-      //           // if (pic == null) {
-      //           //   return;
-      //           // }
-
-      //           // final f = File(pic);
-      //           // final contactService = ContactService();
-      //           // final contact = await contactService.fromCardImage(f);
-      //           // print(contact?.toDict());
-      //           // final appDocDir = await getApplicationDocumentsDirectory();
-      //           // final cardDirPath = join(appDocDir.path, 'cards');
-      //           // final cardDir = Directory(cardDirPath);
-
-      //           // if (!await cardDir.exists()) {
-      //           //   await cardDir.create();
-      //           // }
-
-      //           // final copyPath = join(cardDirPath, 'SELF${extension(pic)}');
-      //           // await f.copy(copyPath);
-
-      //         } catch(e) {
-      //           print(e);
-      //         }
-      //       },
-      //       shape: const CircleBorder(),
-      //       child: const Icon(Icons.camera_alt),
-      //     ),
-
-      //     FloatingActionButton(
-      //       onPressed: () async {
-      //         final imagePicker = ImagePicker();
-      //         final imgFromGallery = await imagePicker.pickImage(source: ImageSource.gallery);
-      //         final contactService = ContactService();
-
-      //         if (imgFromGallery == null) {
-      //           return;
-      //         }
-
-      //         _key.currentState?.toggle();
-      //       },
-      //       shape: const CircleBorder(),
-      //       child: const Icon(Icons.photo),
-      //     ),
-      //   ],
-      // )
-    );
-  }
-
-  Widget registerContactByImage() {
-    return Scaffold(
-      appBar: AppBar(),
-      body: const Placeholder(),
     );
   }
 }

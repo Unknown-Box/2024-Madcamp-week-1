@@ -46,6 +46,7 @@ dependencies:
   google_generative_ai: ^0.4.3
   flutter_expandable_fab: ^2.1.0
   cunning_document_scanner: ^1.2.3
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
@@ -122,7 +123,13 @@ flutter:
        - asset: assets/fonts/Avenir-Medium.ttf
        - asset: assets/fonts/Avenir-MediumOblique.ttf
        - asset: assets/fonts/Avenir-Oblique.ttf
-       - asset: assets/fonts/Avenir-Roman.ttf      
+       - asset: assets/fonts/Avenir-Roman.ttf   
+
+   - family: RobotoSerif
+     fonts:
+       - asset: assets/fonts/RobotoSerif-Italic-VariableFont_GRAD,opsz,wdth,wght.ttf
+       - asset: assets/fonts/RobotoSerif-VariableFont_GRAD,opsz,wdth,wght.ttf
+
 
   #
   # For details regarding fonts from package dependencies,
