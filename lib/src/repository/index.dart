@@ -1,3 +1,4 @@
+import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:cardrepo/src/services/contacts.data.dart';
 
@@ -12,9 +13,9 @@ class Repository {
 
   Future<Database> get db async {
     if (!_isDbBound) {
-      final dbDir = getDatabasesPath();
+      final dbDir = await getDatabasesPath();
       const dbName = "cardrepo.db";
-      final dbPath = '$dbDir/$dbName';
+      final dbPath = join(dbDir, dbName);
 
       _db = await openDatabase(
         dbPath,
@@ -40,7 +41,8 @@ class Repository {
         favorite INTEGER NOT NULL,
         org TEXT,
         position TEXT,
-        ext_link TEXT
+        ext_link TEXT,
+        created_at INTEGER DEFAULT CURRENT_TIMESTAMP NOT NULL
       );""",
       for (final e in data)
         """INSERT INTO CONTACTS (

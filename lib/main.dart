@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import './src/pages/cards.dart';
 import './src/pages/contact.dart';
 import './src/pages/mypage.dart';
@@ -51,6 +49,28 @@ class _AppState extends State<App> {
   String title = 'Business Cards';
   final _key = GlobalKey<ExpandableFabState>();
 
+  void switchPage(int newPageIndex) {
+    setState(() {
+      pageIndex = newPageIndex;
+      switch(newPageIndex) {
+        case 0:
+          page = const Contact();
+          title = 'My Contacts';
+          break;
+        case 1:
+          page = const Cards();
+          title = 'Business Cards';
+          break;
+        case 2:
+          page = const Mypage();
+          title = 'Edit Your Information';
+          break;
+        default:
+          throw UnimplementedError('unimplemented page');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,27 +104,7 @@ class _AppState extends State<App> {
           selectedItemColor: Color.fromARGB(255, 0, 0, 0),
           unselectedItemColor: Color.fromARGB(255, 176, 176, 176),
           currentIndex: pageIndex,
-          onTap: (value) {
-            setState(() {
-              pageIndex = value;
-              switch(value) {
-                case 0:
-                  page = const Contact();
-                  title = 'My Contacts';
-                  break;
-                case 1:
-                  page = const Cards();
-                  title = 'Business Cards';
-                  break;
-                case 2:
-                  page = const Mypage();
-                  title = 'Edit Your Information';
-                  break;
-                default:
-                  throw UnimplementedError('unimplemented page');
-              }
-            });
-          },
+          onTap: switchPage,
           items: [
             BottomNavigationBarItem(
               icon: Image.asset('assets/images/searchicon.png', width: 20, height: 20),
@@ -124,78 +124,87 @@ class _AppState extends State<App> {
           ],
         ),
       ),
-      floatingActionButtonLocation: ExpandableFab.location,
-      floatingActionButton: ExpandableFab(
-        key: _key,
-        distance: 80,
-        type: ExpandableFabType.up,
-        pos: ExpandableFabPos.right,
-        overlayStyle: ExpandableFabOverlayStyle(
-          color: Colors.black.withOpacity(0.2),
-          blur: 4,
-        ),
-        openButtonBuilder: RotateFloatingActionButtonBuilder(
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add),
-        ),
-        closeButtonBuilder: RotateFloatingActionButtonBuilder(
-          shape: const CircleBorder(),
-          child: const Icon(Icons.close),
-        ),
-        children: [
-          FloatingActionButton(
-            onPressed: () async {
-              try {
-                final pics = await CunningDocumentScanner.getPictures(
-                  noOfPages: 1,
-                  isGalleryImportAllowed: true
-                );
-                final pic = pics?.firstOrNull;
-                if (pic == null) {
-                  return;
-                }
+      // floatingActionButtonLocation: ExpandableFab.location,
+      // floatingActionButton: ExpandableFab(
+      //   key: _key,
+      //   distance: 80,
+      //   type: ExpandableFabType.up,
+      //   pos: ExpandableFabPos.right,
+      //   overlayStyle: ExpandableFabOverlayStyle(
+      //     color: Colors.black.withOpacity(0.2),
+      //     blur: 4,
+      //   ),
+      //   openButtonBuilder: RotateFloatingActionButtonBuilder(
+      //     shape: const CircleBorder(),
+      //     child: const Icon(Icons.add),
+      //   ),
+      //   closeButtonBuilder: RotateFloatingActionButtonBuilder(
+      //     shape: const CircleBorder(),
+      //     child: const Icon(Icons.close),
+      //   ),
+      //   children: [
+      //     FloatingActionButton(
+      //       onPressed: () async {
+      //         _key.currentState?.toggle();
+      //         switchPage(0);
 
-                final f = File(pic);
-                final contactService = ContactService();
-                final contact = await contactService.fromCardImage(f);
-                print(contact?.toDict());
-                // final appDocDir = await getApplicationDocumentsDirectory();
-                // final cardDirPath = join(appDocDir.path, 'cards');
-                // final cardDir = Directory(cardDirPath);
+      //         try {
+      //           // final pics = await CunningDocumentScanner.getPictures(
+      //           //   noOfPages: 1,
+      //           //   isGalleryImportAllowed: true
+      //           // );
+      //           // final pic = pics?.firstOrNull;
+      //           // if (pic == null) {
+      //           //   return;
+      //           // }
 
-                // if (!await cardDir.exists()) {
-                //   await cardDir.create();
-                // }
+      //           // final f = File(pic);
+      //           // final contactService = ContactService();
+      //           // final contact = await contactService.fromCardImage(f);
+      //           // print(contact?.toDict());
+      //           // final appDocDir = await getApplicationDocumentsDirectory();
+      //           // final cardDirPath = join(appDocDir.path, 'cards');
+      //           // final cardDir = Directory(cardDirPath);
 
-                // final copyPath = join(cardDirPath, 'SELF${extension(pic)}');
-                // await f.copy(copyPath);
+      //           // if (!await cardDir.exists()) {
+      //           //   await cardDir.create();
+      //           // }
 
-                _key.currentState?.toggle();
-              } catch(e) {
-                print(e);
-              }
-            },
-            shape: const CircleBorder(),
-            child: const Icon(Icons.camera_alt),
-          ),
+      //           // final copyPath = join(cardDirPath, 'SELF${extension(pic)}');
+      //           // await f.copy(copyPath);
 
-          FloatingActionButton(
-            onPressed: () async {
-              final imagePicker = ImagePicker();
-              final imgFromGallery = await imagePicker.pickImage(source: ImageSource.gallery);
-              final contactService = ContactService();
+      //         } catch(e) {
+      //           print(e);
+      //         }
+      //       },
+      //       shape: const CircleBorder(),
+      //       child: const Icon(Icons.camera_alt),
+      //     ),
 
-              if (imgFromGallery == null) {
-                return;
-              }
+      //     FloatingActionButton(
+      //       onPressed: () async {
+      //         final imagePicker = ImagePicker();
+      //         final imgFromGallery = await imagePicker.pickImage(source: ImageSource.gallery);
+      //         final contactService = ContactService();
 
-              _key.currentState?.toggle();
-            },
-            shape: const CircleBorder(),
-            child: const Icon(Icons.photo),
-          ),
-        ],
-      )
+      //         if (imgFromGallery == null) {
+      //           return;
+      //         }
+
+      //         _key.currentState?.toggle();
+      //       },
+      //       shape: const CircleBorder(),
+      //       child: const Icon(Icons.photo),
+      //     ),
+      //   ],
+      // )
+    );
+  }
+
+  Widget registerContactByImage() {
+    return Scaffold(
+      appBar: AppBar(),
+      body: const Placeholder(),
     );
   }
 }

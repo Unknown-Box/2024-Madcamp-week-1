@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cardrepo/src/services/contacts.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -21,9 +23,7 @@ class _ContactState extends State<Contact> {
   void initState() {
     super.initState();
 
-    contactService
-      .listContacts()
-      .then(updateContactList);
+    searchContacts();
   }
 
   void updateContactList(List<ContactModel> newContats) {
@@ -149,6 +149,7 @@ class _ContactState extends State<Contact> {
                     fullName: contact.fullName,
                     tel: contact.tel,
                     email: contact.email,
+                    cardUrl: contact.cardUrl,
                     favorite: contact.favorite,
                     org: contact.org,
                     position: contact.position,
@@ -174,6 +175,7 @@ class ContactCard extends StatefulWidget {
   final String fullName;
   final String tel;
   final String email;
+  final String cardUrl;
   final bool favorite;
   final String? org;
   final String? position;
@@ -186,6 +188,7 @@ class ContactCard extends StatefulWidget {
     required this.fullName,
     required this.tel,
     required this.email,
+    required this.cardUrl,
     required this.favorite,
     this.org,
     this.position,
@@ -204,14 +207,14 @@ class _ContactCardState extends State<ContactCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
+        Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ContactDetails(
               id: widget.id,
               fullName: widget.fullName,
               tel: widget.tel,
               email: widget.email,
+              cardUrl: widget.cardUrl,
               favorite: widget.favorite,
               org: widget.org,
               position: widget.position,
@@ -323,6 +326,7 @@ class ContactDetails extends StatefulWidget {
   final String fullName;
   final String tel;
   final String email;
+  final String cardUrl;
   final bool favorite;
   final String? org;
   final String? position;
@@ -334,6 +338,7 @@ class ContactDetails extends StatefulWidget {
     required this.fullName,
     required this.tel,
     required this.email,
+    required this.cardUrl,
     required this.favorite,
     this.org,
     this.position,
@@ -378,8 +383,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/1.png'),
+                    image: DecorationImage(
+                      image: FileImage(File(widget.cardUrl)),
                       fit: BoxFit.cover,
                     ),
                     boxShadow: const [
@@ -400,7 +405,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                 ),
               ),
             ),
-            
+
             // Full Name display
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -498,7 +503,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                                       ),
                                     actions: [
                                       TextButton(
-                                        child: Text('close'), 
+                                        child: Text('close'),
                                         onPressed: () => Navigator.of(context).pop(),
                                       )
                                     ],
@@ -506,7 +511,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                                 );
                               },
                             ),
-                          ]                          
+                          ]
                         ),
                       ),
                       SizedBox(height:0),
@@ -533,8 +538,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                                     fontSize: 13,
                                   ),
                                   widget.email,
-                                  overflow: TextOverflow.ellipsis,  
-                                ), 
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                             IconButton(
@@ -554,7 +559,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                                       ),
                                     actions: [
                                       TextButton(
-                                        child: Text('close'), 
+                                        child: Text('close'),
                                         onPressed: () => Navigator.of(context).pop(),
                                       )
                                     ],
@@ -589,7 +594,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                                   fontSize: 13,
                                 ),
                                 overflow: TextOverflow.ellipsis,
-                              ), 
+                              ),
                             )
                           ],
                         ),
@@ -647,7 +652,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                                     }
                                   },
                                   overflow: TextOverflow.ellipsis,
-                                  text: widget.extLink ?? 'https://www.instagram.com/in.cs.tagram/',
+                                  text: widget.extLink ?? '',
                                   style: TextStyle(color: Colors.black),
                                   linkStyle: TextStyle(color: Color.fromARGB(255, 72, 109, 174)),
                                 )
@@ -706,7 +711,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                     final isRemoved = await contactService.removeContactById(widget.id);
 
                     if (isRemoved) {
-                      Navigator.pop(context);
+                      Navigator.of(context).pop();
                     }
                   },
                   style: ElevatedButton.styleFrom(

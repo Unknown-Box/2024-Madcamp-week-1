@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 import 'package:uuid/v4.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -46,6 +47,19 @@ class ContactModel {
     );
   }
 
+  factory ContactModel.placeholder() {
+    final uuid4Generator = UuidV4();
+
+    return ContactModel(
+      id: uuid4Generator.generate(),
+      fullName: 'Full Name',
+      tel: 'Tel',
+      email: 'Email',
+      cardUrl: 'cards/url',
+      favorite: false
+    );
+  }
+
   Map<String, dynamic> toDict() {
     return {
       'id': id,
@@ -81,15 +95,27 @@ class ContactService {
     required String fullName,
     required String tel,
     required String email,
-    required XFile cardImg,
+    required File cardImg,
     String? org,
     String? position,
     String? extLink
   }) async {
     final db = await repo.db;
     final uuid4 = uuid4Generator.generate();
-    final cardImgDir = await getApplicationDocumentsDirectory();
-    final cardImgPath = join(cardImgDir.path, 'card_imgs', uuid4);
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final cardDirPath = join(appDocDir.path, 'cards');
+    final cardDir = Directory(cardDirPath);
+
+    if (!await cardDir.exists()) {
+      await cardDir.create();
+    }
+
+    final cardPath = setExtension(
+      join(cardDir.path, uuid4),
+      extension(cardImg.path)
+    );
+
+    await cardImg.copy(cardPath);
 
     try {
       final contact = ContactModel(
@@ -97,7 +123,7 @@ class ContactService {
         fullName: fullName,
         tel: tel,
         email: email,
-        cardUrl: cardImgPath,
+        cardUrl: cardPath,
         favorite: false,
         org: org,
         position: position,
@@ -162,7 +188,7 @@ class ContactService {
       'CONTACTS',
       where: 'id != ?',
       whereArgs: ['SELF'],
-      orderBy: 'fn ASC',
+      orderBy: 'created_at DESC',
     );
     final contacts = results.map(ContactModel.fromDict)
                             .toList();
