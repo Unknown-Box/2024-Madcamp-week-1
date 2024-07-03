@@ -532,7 +532,6 @@ class _MypageState extends State<Mypage> {
       ),
       body: Center(
         child: SingleChildScrollView(
-              reverse: true,
               padding: EdgeInsets.all(10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
