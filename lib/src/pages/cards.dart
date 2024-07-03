@@ -60,6 +60,7 @@ class _CardsState extends State<Cards> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Center(
@@ -82,6 +83,7 @@ class _CardsState extends State<Cards> {
                     final imgPath = contact.cardUrl;
                     return Container(
                       decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(5.0),
                         image: DecorationImage(
                           // image: AssetImage(imagesList[index]),
