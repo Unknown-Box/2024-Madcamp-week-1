@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -282,7 +283,7 @@ class ContactService {
     }
   }
 
-  Future<ContactModel?> fromCardImage(XFile img) async {
+  Future<ContactModel?> fromCardImage(File img) async {
     try {
       final model = GenerativeModel(
         model: 'gemini-1.5-flash',
@@ -297,17 +298,12 @@ class ContactService {
       );
       final result = resp.text!;
       final linesCnt = '\n'.allMatches(result).length;
-      late Map<String, String> data;
+      late Map<String, dynamic> data;
 
-      switch (linesCnt) {
-        case 1:
-          data = jsonDecode(result);
-          break;
-        case 3:
-          data = jsonDecode(result.substring(8, result.length - 3));
-          break;
-        default:
-          throw UnimplementedError('unexpected input');
+      if (result.startsWith('```json')) {
+        data = jsonDecode(result.substring(8, result.length - 3));
+      } else {
+        data = jsonDecode(result);
       }
 
       return ContactModel(
@@ -322,6 +318,7 @@ class ContactService {
         extLink: data['ext_link'],
       );
     } catch(e) {
+      print(e);
       return null;
     }
   }
