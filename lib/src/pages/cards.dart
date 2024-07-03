@@ -86,7 +86,7 @@ class _CardsState extends State<Cards> {
                         image: DecorationImage(
                           // image: AssetImage(imagesList[index]),
                           image: imgPath.isEmpty
-                            ? AssetImage('assets/images/1.png')
+                            ? AssetImage('assets/images/${index % 20 + 1}.png')
                             : FileImage(File(imgPath)),
                           fit: BoxFit.fill,
                         ),
@@ -161,18 +161,6 @@ class _CardsState extends State<Cards> {
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: IconButton(
-              onPressed: () async {
-                final dbDir = await getDatabasesPath();
-                const dbName = "cardrepo.db";
-                final dbPath = join(dbDir, dbName);
-                deleteDatabase(dbPath);
-              },
-              icon: const Icon(Icons.restore),
-            ),
-          )
         ]
       ),
     );
